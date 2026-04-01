@@ -51,7 +51,7 @@ func _process(_dt: float) -> void:
 	dbg("FPS: ", Engine.get_frames_per_second())
 	update_debug()
 	
-	var speed = Vector2(velocity.x, velocity.z).length()
+	var speed = velocity.length() # Vector2(velocity.x, velocity.z).length()
 	$Camera.fov = 95.0 + 0.5 * speed 
 	
 	if Input.is_action_just_pressed("ESC"):
@@ -91,7 +91,7 @@ var prev_camera_rotation := Vector3.INF
 @export var stand_camera_target : Node3D
 
 var state : GLOBAL.ENTITY_STATE = GLOBAL.ENTITY_STATE.STAND
-const states = GLOBAL.ENTITY_STATE
+var states = GLOBAL.ENTITY_STATE
 
 var origin
 func _ready() -> void:
@@ -128,8 +128,11 @@ func handle_grapple(dt):
 	var distance = to_hook.length()
 	if distance == 0:
 		return
+	
 	var dir = to_hook / distance
 	var displacement = distance - rest_length
+	
+	# --- ПРУЖИНА ---
 	if displacement > 0:
 		var spring_force = dir * displacement * stiffness
 		if spring_force.length() > max_force:
@@ -139,21 +142,64 @@ func handle_grapple(dt):
 		var damp_force = -dir * vel_along_rope * damping
 		var force = spring_force + damp_force
 		velocity += force * dt
+	
+	# --- УПРАВЛЕНИЕ ---
+	var input_dir = Vector3.ZERO
+	input_dir.x = Input.get_action_strength("D") - Input.get_action_strength("A")
+	input_dir.z = Input.get_action_strength("S") - Input.get_action_strength("W")
+	
+	if input_dir != Vector3.ZERO:
+		input_dir = input_dir.normalized()
+		
+		var perp_input = input_dir - dir * input_dir.dot(dir)
+		var control_strength = 5.0
+		
+		var accel = perp_input * control_strength * dt
+		
+		var speed = velocity.length()
+		var max_speed = 20.0
+		
+		# даём ускорение только если оно не увеличивает скорость выше лимита
+		if speed < max_speed:
+			velocity += accel
+		else:
+			# разрешаем только торможение
+			if accel.dot(velocity) < 0:
+				velocity += accel
+	
+	# --- ГРАВИТАЦИЯ ---
 	velocity.y -= GRAVITY * dt
+	
+	# --- ЖЁСТКИЙ ЛИМИТ СКОРОСТИ ---
+	var max_speed = 20.0
+	var current_speed = velocity.length()
+	if current_speed > max_speed:
+		velocity = velocity.normalized() * max_speed
+	
 	move_and_slide()
 
 func _physics_process(_dt: float) -> void:
 	if Input.is_action_just_pressed("RMB"):
-		launch()
+		hook_target = ray.get_collision_point()
+		state = states.HOOKED
+		#launch()
 	if Input.is_action_just_released("RMB"):
-		retract()
-	if launched:
-		handle_grapple(_dt)
-		return
+		state = states.STAND
+		#retract()
+	#if launched:
+		#handle_grapple(_dt)
+		#return
 	if is_on_floor():
 		coyot_time = 0.0
 	else:
 		coyot_time += _dt
+	
+	
+	#if Input.is_action_just_pressed("RMB"):
+		
+	
+	
+	
 	input_dir = Input.get_vector("A", "D", "W", "S")
 	var direction = (transform.basis * Vector3(input_dir.x, 0.0, input_dir.y)).normalized()
 	var floor_normal := Vector3.UP
@@ -192,7 +238,6 @@ func _physics_process(_dt: float) -> void:
 			else:
 				state = states.STAND
 		states.INAIR:
-			
 			velocity.y -= GRAVITY * _dt
 			if direction:
 				var d = 1.0 - Vector2(direction.x, direction.z).normalized().dot(Vector2(velocity.x, velocity.z).normalized()) * 0.5 - 0.30
@@ -213,7 +258,55 @@ func _physics_process(_dt: float) -> void:
 			if is_on_floor():
 				state = states.STAND
 		states.SLIDING: pass
-		states.HOOKED: pass
+		states.HOOKED:
+					var to_hook = hook_target - global_position
+					var distance = to_hook.length()
+					if distance == 0:
+						return
+					
+					var dir = to_hook / distance
+					var displacement = distance - rest_length
+					
+					# --- ПРУЖИНА ---
+					if displacement > 0:
+						var spring_force = dir * displacement * stiffness
+						if spring_force.length() > max_force:
+							spring_force = spring_force.normalized() * max_force
+						
+						var vel_along_rope = velocity.dot(dir)
+						var damp_force = -dir * vel_along_rope * damping
+						var force = spring_force + damp_force
+						velocity += force * _dt
+					
+					# --- УПРАВЛЕНИЕ ---
+					
+					if direction != Vector3.ZERO:
+						
+						
+						var perp_input = direction - dir * direction.dot(dir)
+						var control_strength = 5.0
+						
+						var accel = perp_input * control_strength * _dt
+						
+						var speed = velocity.length()
+						var max_speed = 20.0
+						
+						# даём ускорение только если оно не увеличивает скорость выше лимита
+						if speed < max_speed:
+							velocity += accel
+						else:
+							# разрешаем только торможение
+							if accel.dot(velocity) < 0:
+								velocity += accel
+					
+					# --- ГРАВИТАЦИЯ ---
+					velocity.y -= GRAVITY * _dt
+					
+					# --- ЖЁСТКИЙ ЛИМИТ СКОРОСТИ ---
+					var max_speed = 20.0
+					var current_speed = velocity.length()
+					if current_speed > max_speed:
+						velocity = velocity.normalized() * max_speed
 		states.DASH: pass
 		states.ONWALL: pass
 	move_and_slide()
