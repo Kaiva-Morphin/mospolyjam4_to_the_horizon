@@ -1,4 +1,5 @@
 extends CharacterBody3D
+
 #region DEBUG
 var DEBUG_UPDATE = false
 var SHOW_DEBUG = false
@@ -40,13 +41,19 @@ var MAX_AIRJUMPS := 1
 var CAMERA_INTERPOLATION_SPEED := 20.0
 var MAX_ENERGY := 300
 var RUN_SPEED := 20.0
-var GRAVITY : float = ProjectSettings.get_setting("physics/3d/default_gravity") 
+var GRAVITY : float = ProjectSettings.get_setting("physics/3d/default_gravity")  * 2.5
 var MAX_SLOPE_ANGLE := deg_to_rad(45.0)
 var MAX_COYOT_TIME = 0.1
-var JUMP_STRENGTH = 5.0
+var JUMP_STRENGTH = 8.0
+
 
 func _process(_dt: float) -> void:
+	dbg("FPS: ", Engine.get_frames_per_second())
 	update_debug()
+	
+	var speed = Vector2(velocity.x, velocity.z).length()
+	$Camera.fov = 95.0 + 0.5 * speed 
+	
 	if Input.is_action_just_pressed("ESC"):
 		if Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -56,25 +63,20 @@ func _process(_dt: float) -> void:
 		camera.position.y = lerp(camera.position.y, crunch_camera_target.position.y, _dt * CAMERA_INTERPOLATION_SPEED)
 	else:
 		camera.position.y = lerp(camera.position.y, stand_camera_target.position.y, _dt * CAMERA_INTERPOLATION_SPEED)
-	#INAIR_SPEED = 2.0
-	#ACC_SPEED = 50.0
-	#DEC_SPEED = 0.08
-	#RUN_SPEED = 20.0
-	#SLIDE_SPEED = ACC_SPEED * 1.3
-	#JUMP_VELOCITY = 30
-	#MAX_WALLJUMPS = 3
-	#MAX_AIRJUMPS = 1
-	#CAMERA_INTERPOLATION_SPEED = 20.0
-	#MAX_ENERGY = 300
-	#MAX_SLOPE_ANGLE = deg_to_rad(45.0)
+	if ray.is_colliding():
+		$HOOK.global_position = ray.get_collision_point()
+		$HOOK.show()
+	else:
+		$HOOK.hide()
+	if launched:
+		$HOOK.global_position = hook_target
+		$HOOK.show()
 
 func _notification(what):
 	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	if what == NOTIFICATION_WM_WINDOW_FOCUS_IN:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-
-	
 #endregion
 
 var energy := MAX_ENERGY
@@ -96,35 +98,76 @@ func _ready() -> void:
 	init_debug()
 	origin = global_position
 
-
+var env = true
+var env1 : WorldEnvironment
+var e1 : Environment
+var e2 : Environment
 var coyot_time = 0.0
+
+var launched = false
+
+@export var rest_length = 4.0
+@export var stiffness = 20.0
+@export var damping = 4.0
+@export var max_force = 150.0
+
+var hook_target: Vector3
+
+@onready var ray = $Camera/HookRay
+
+func launch():
+	if ray.is_colliding():
+		launched = true
+		hook_target = ray.get_collision_point()
+
+func retract():
+	launched = false
+
+func handle_grapple(dt):
+	var to_hook = hook_target - global_position
+	var distance = to_hook.length()
+	if distance == 0:
+		return
+	var dir = to_hook / distance
+	var displacement = distance - rest_length
+	if displacement > 0:
+		var spring_force = dir * displacement * stiffness
+		if spring_force.length() > max_force:
+			spring_force = spring_force.normalized() * max_force
+		
+		var vel_along_rope = velocity.dot(dir)
+		var damp_force = -dir * vel_along_rope * damping
+		var force = spring_force + damp_force
+		velocity += force * dt
+	velocity.y -= GRAVITY * dt
+	move_and_slide()
+
 func _physics_process(_dt: float) -> void:
+	if Input.is_action_just_pressed("RMB"):
+		launch()
+	if Input.is_action_just_released("RMB"):
+		retract()
+	if launched:
+		handle_grapple(_dt)
+		return
 	if is_on_floor():
 		coyot_time = 0.0
 	else:
 		coyot_time += _dt
-	
 	input_dir = Input.get_vector("A", "D", "W", "S")
-
 	var direction = (transform.basis * Vector3(input_dir.x, 0.0, input_dir.y)).normalized()
-
 	var floor_normal := Vector3.UP
 	if is_on_floor():
 		floor_normal = get_floor_normal()
-	
 	if is_on_floor():
 		inair_jumps = MAX_AIRJUMPS
-
 	if direction != Vector3.ZERO:
 		direction = direction.slide(floor_normal).normalized()
-
 	dbg("STATE: ", states.keys()[state])
 	dbg("NORMAL: ", floor_normal)
 	dbg("DIRECTION: ", direction)
 	dbg("VELOCITY: ", velocity)
-	
 	handle_jump()
-
 	match state:
 		states.STAND:
 			if not is_on_floor():
@@ -149,6 +192,7 @@ func _physics_process(_dt: float) -> void:
 			else:
 				state = states.STAND
 		states.INAIR:
+			
 			velocity.y -= GRAVITY * _dt
 			if direction:
 				var d = 1.0 - Vector2(direction.x, direction.z).normalized().dot(Vector2(velocity.x, velocity.z).normalized()) * 0.5 - 0.30

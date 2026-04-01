@@ -3,12 +3,11 @@
 importer="font_data_dynamic"
 type="FontFile"
 uid="uid://dq8jp61yff7e4"
-path="res://.godot/imported/kaivs_minegram_v1-italic.ttf-8a7f1222367fe580a6f4c9e2e0005b9f.fontdata"
+valid=false
 
 [deps]
 
 source_file="res://assets/fonts/kaivs_minegram_v1-italic.ttf"
-dest_files=["res://.godot/imported/kaivs_minegram_v1-italic.ttf-8a7f1222367fe580a6f4c9e2e0005b9f.fontdata"]
 
 [params]
 

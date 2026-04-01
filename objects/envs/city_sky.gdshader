@@ -49,13 +49,7 @@ float fbm(vec2 n) {
 
 
 
-
-
-
-
-
-
-#define USE_TWINKLE
+//#define USE_TWINKLE
 
 group_uniforms sky;
 uniform vec3 sky_color: source_color = vec3(0.03, 0.05, 0.11);
@@ -114,40 +108,47 @@ vec3 hash(vec3 x) {
 	return fract(sin(x) * 43758.5453123);
 }
 
+uniform sampler3D noise_tex : filter_linear, repeat_enable;
+
+uniform sampler3D voronoi_tex : filter_linear, repeat_enable;
+
 vec2 voronoi(in vec3 x){
-	vec3 p = floor(x);
-	vec3 f = fract(x);
+	//vec3 p = floor(x);
+	//vec3 f = fract(x);
+	//
+	//float res = 100.;
+	//float id = 0.;
+	//
+	//for (float k = -1.; k <= 1.; k += 1.) {
+		//for (float j = -1.; j <= 1.; j += 1.) {
+			//for (float i = -1.; i <= 1.; i += 1.) {
+				//vec3 b = vec3(i, j, k);
+				//vec3 r = vec3(b) - f + hash(p + b);
+				//float d = dot(r, r);
+				//if (d < res) {
+					//res = d;
+					//id = dot(p + b, vec3(0., 57., 113.));
+				//}
+		    //}
+		//}
+	//}
 	
-	float res = 100.;
-	float id = 0.;
-	
-	for (float k = -1.; k <= 1.; k += 1.) {
-		for (float j = -1.; j <= 1.; j += 1.) {
-			for (float i = -1.; i <= 1.; i += 1.) {
-				vec3 b = vec3(i, j, k);
-				vec3 r = vec3(b) - f + hash(p + b);
-				float d = dot(r, r);
-				if (d < res) {
-					res = d;
-					id = dot(p + b, vec3(0., 57., 113.));
-				}
-		    }
-		}
-	}
-	
-	return vec2(sqrt(res), id);
+	//return vec2(sqrt(res), 0.0);
+	return vec2(texture(voronoi_tex, fract(x * 0.09)).r, 0.0);
 }
 
 
 void sky() {
 	
 	COLOR = sky_color;
+	vec3 normal = normalize(EYEDIR);
 	
 	for (int i = 0; i < layers_count; i++) {
 		vec3 pos = EYEDIR * (layer_scale + float(i) * layer_scale_step);
 		vec2 layer = voronoi(pos);
 		
-		vec3 rand = hash(vec3(layer.y));
+		//vec3 rand = hash(vec3(layer.y));
+		vec3 rand = texture(noise_tex, vec3(layer.y)).xyz;
 		
 		#ifdef USE_TWINKLE
 			float twinkle = sin(TIME * PI * star_twinkle_speed + rand.x * TAU);
@@ -155,11 +156,13 @@ void sky() {
 			float star = smoothstep(star_intensity + star_intensity * twinkle, 0., layer.x);
 		#else
 			float star = smoothstep(star_intensity, 0., layer.x);
+			//COLOR = vec3(layer.x);
 		#endif
 		
 		vec3 star_color = star * hue((COLOR + star_base_color), rand.y * star_hue_offset, 1);
 		
-		COLOR += star_color;
+		float horizon_stars_fall_off = clamp(normal.y * 10.0, 0.0, 1.0);
+		COLOR += star_color * horizon_stars_fall_off;
 	}
 	
 	
@@ -167,7 +170,6 @@ void sky() {
 	if(AT_CUBEMAP_PASS){
 		COLOR *= sky_contribution;
     }else if(add_clouds){
-		vec3 normal = normalize(EYEDIR);
 		vec3 plane_intersect = normal / (normal.y + height_offset);
 		
 		if(clouds_below){
@@ -250,6 +252,7 @@ void sky() {
 		float re = clamp((res.r + res.g + res.b) / 3.0, 0.0, 1.0);
 		vec3 result = mix(vec3(re) * clamp(skycolour, 0.0, 1.0), clamp(sky_tint * vec3(re) * clamp(skycolour, 0.0, 1.0) + cloudcolour, 0.0, 1.0) * cloud_color, clamp(f + c, 0.0, 1.0) * horizon_fall_off );
 		// Convert the color to black and white.
+		//result = vec3(horizon_stars_fall_off);
 		COLOR = result; // vec3(result.r + result.g + result.b);
 	}
 }
