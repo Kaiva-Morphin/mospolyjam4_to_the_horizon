@@ -145,9 +145,6 @@ func _process(delta: float) -> void:
 		trigger_ride.emit(self)
 		
 		papa_speed = Vector2(tracked.velocity.x, tracked.velocity.z).project(Vector2(run_dir_vec.x, run_dir_vec.z).normalized()).length() + 7.0
-		prints(papa_speed, Vector2(tracked.velocity.x, tracked.velocity.z) == Vector2(tracked.velocity.x, tracked.velocity.z))
-		prints(Vector2(tracked.velocity.x, tracked.velocity.z).project(Vector2(run_dir_vec.x, run_dir_vec.z).normalized()))
-		prints(tracked.velocity, run_dir_vec)
 		
 		tracked = null
 		if offset_from == offset_to:

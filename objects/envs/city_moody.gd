@@ -6,7 +6,7 @@ extends Node3D
 
 @export var default : bool = true
 
-@export var default_energy: float = 4.1
+@export var default_energy: float = 0.2
 @export var default_sun : Color = Color.WHITE
 @export var default_cloud : Color = Color("#6d757d") # Color.from_rgba8(75, 103, 133)
 
@@ -21,6 +21,7 @@ func _ready():
 	mat = sky.sky_material
 	mat.set_shader_parameter("cloud_color", initial_cloud)
 	mat.set_shader_parameter("sun_color", initial_sun)
+	#add_child(preload("res://maps/city.scn").instantiate())
 	if default:
 		show_env()
 
