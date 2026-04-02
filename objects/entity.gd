@@ -29,7 +29,7 @@ func update_debug():
 #endregion
 
 #region CONSTS
-var ACC_INAIR := 40.0
+var ACC_INAIR := 60.0
 var INAIR_SPEED := 20.0
 var INAIR_DOT_FACTOR := 2.0
 var ACC_SPEED := 50.0
@@ -56,17 +56,32 @@ var jump_buffer = 0.0
 
 @onready var rope = $"../Rope"
 @onready var rope_mesh = $"../Rope/Rope"
-
+var checkpoint
+var c_rot
 var origin
 func _ready() -> void:
 	init_debug()
 	origin = global_position
+	checkpoint = origin
+	c_rot = self.rotation
 	update_hook_joints()
 	rope.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	for slider_ in get_tree().get_nodes_in_group("Slider"):
 		slider_.trigger_ride.connect(on_slider_ride)
 
 func _process(_dt: float) -> void:
+	if Input.is_action_just_pressed("C"):
+		checkpoint = global_position
+		c_rot = self.rotation
+	if Input.is_action_just_pressed("R"):
+		velocity = Vector3.ZERO
+		state = states.STAND
+		self.rotation = c_rot
+		global_position = checkpoint
+	if Input.is_action_just_pressed("F"):
+		velocity = Vector3.ZERO
+		state = states.STAND
+		global_position = checkpoint
 	dbg("FPS: ", Engine.get_frames_per_second())
 	update_debug()
 	
@@ -77,11 +92,6 @@ func _process(_dt: float) -> void:
 		rope.global_position = p
 		rope_mesh.mesh.height = l.length()
 		rope.look_at(global_position, Vector3.UP)
-		#await get_tree().process_frame
-		#await get_tree().process_frame
-		#await get_tree().process_frame
-		#await get_tree().process_frame
-		#await get_tree().process_frame
 		rope.show()
 		rope.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_ON
 	else:
@@ -100,14 +110,6 @@ func _process(_dt: float) -> void:
 		camera.position.y = lerp(camera.position.y, crunch_camera_target.position.y, _dt * CAMERA_INTERPOLATION_SPEED)
 	else:
 		camera.position.y = lerp(camera.position.y, stand_camera_target.position.y, _dt * CAMERA_INTERPOLATION_SPEED)
-	#if ray.is_colliding():
-		#$HOOK.global_position = ray.get_collision_point()
-		#$HOOK.show()
-	#else:
-		#$HOOK.hide()
-	#if launched:
-		#$HOOK.global_position = hook_target
-		#$HOOK.show()
 
 func _notification(what):
 	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
@@ -116,7 +118,7 @@ func _notification(what):
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 #endregion
 
-
+#region RIDING
 # gc, haha
 var prev_ride_tick = false
 var slider = null
@@ -141,6 +143,7 @@ func cleanup_ride():
 			state = states.STAND
 		slider.track_end.disconnect(on_ride_end)
 		slider = null
+#endregion
 
 var energy := MAX_ENERGY
 var walljumps := MAX_WALLJUMPS
@@ -252,7 +255,7 @@ func update_hook_joints():
 
 
 
-
+var wall_normal : = Vector3.ZERO
 func _physics_process(_dt: float) -> void:
 	if Input.is_action_just_pressed("SPACE"):
 		jump_buffer = JUMP_BUFFER_TIME
@@ -260,10 +263,8 @@ func _physics_process(_dt: float) -> void:
 		jump_buffer = max(jump_buffer - _dt, 0.0)
 	
 	if !prev_ride_tick: cleanup_ride()
-	if Input.is_action_just_pressed("R"):
-		velocity = Vector3.ZERO
-		state = states.STAND
-		global_position = origin
+	
+	#region JOINTS
 	var nearest_joint = null
 	var best_score = -INF
 	var space_state = get_world_3d().direct_space_state
@@ -271,10 +272,12 @@ func _physics_process(_dt: float) -> void:
 		node.unfocus()
 		var to_point = node.global_position - camera.global_position
 		var dist = to_point.length()
+		node.dist(dist)
 		if dist == 0:
 			continue
 		if dist > node.attention_distance:
 			continue
+		node.in_range()
 		var dir = to_point / dist
 		var forward = -camera.global_transform.basis.z
 		var dot = dir.dot(forward)
@@ -302,9 +305,11 @@ func _physics_process(_dt: float) -> void:
 			hook_target = nearest_joint
 			if state == states.RIDING:
 				cleanup_ride()
+				inair_jumps = MAX_AIRJUMPS
 			state = states.HOOKED
 			inair_jumps = MAX_AIRJUMPS
-		
+	#endregion
+	
 	if is_on_floor():
 		coyot_time = 0.0
 	else:
@@ -312,24 +317,50 @@ func _physics_process(_dt: float) -> void:
 	input_dir = Input.get_vector("A", "D", "W", "S")
 	var direction = (transform.basis * Vector3(input_dir.x, 0.0, input_dir.y)).normalized()
 	
-	var target_tilt = tilt_limit
+	#var target_tilt = tilt_limit
+	#var current_rotation = camera.rotation_degrees
+	#if wall_normal:
+		#target_tilt *= input_dir.x
+		#current_rotation.z = lerp(current_rotation.z, target_tilt, TILT_WALL_STRENGTH)
+	#else:
+		#target_tilt *= -input_dir.x
+		#current_rotation.z = lerp(current_rotation.z, target_tilt, TILT_STRENGTH)
+	#
+	#current_rotation.z = clamp(current_rotation.z, -tilt_limit, tilt_limit)
+	
+	#camera.rotation_degrees = current_rotation
+	
+	
 	var current_rotation = camera.rotation_degrees
-	if is_on_wall_only():
-		target_tilt *= input_dir.x
-		current_rotation.z = lerp(current_rotation.z, target_tilt, TILT_WALL_STRENGTH)
-	else:
-		target_tilt *= -input_dir.x
+	dbg("normal: ", wall_normal)
+	if wall_normal && !is_on_floor():
+		var forward = -camera.global_transform.basis.z
+		var normal = wall_normal.normalized()
+		# Определяем сторону стены относительно взгляда
+		var side = forward.cross(normal).y   # знак (+/-)
+		# Сила наклона (можно ослабить если смотришь прямо в стену)
+		var facing = 1.0 - abs(forward.dot(normal))  # 0 = прямо в стену, 1 = вдоль
+		var target_tilt = tilt_limit * side * facing
+		current_rotation.z = lerp(
+			current_rotation.z,
+			target_tilt,
+			TILT_WALL_STRENGTH
+		)
+	elif input_dir:
+		var target_tilt = tilt_limit * -input_dir.x
 		current_rotation.z = lerp(current_rotation.z, target_tilt, TILT_STRENGTH)
-	
-	
-	current_rotation.z = clamp(current_rotation.z, -tilt_limit, tilt_limit)
-	
+	else:
+		current_rotation.z = lerp(
+			current_rotation.z,
+			0.0,
+			TILT_STRENGTH
+		)
 	camera.rotation_degrees = current_rotation
 	
 	var floor_normal := Vector3.UP
 	if is_on_floor():
 		floor_normal = get_floor_normal()
-	if is_on_floor():
+	#if is_on_floor():
 		inair_jumps = MAX_AIRJUMPS
 	if direction != Vector3.ZERO:
 		direction = direction.slide(floor_normal).normalized()
@@ -369,22 +400,11 @@ func _physics_process(_dt: float) -> void:
 				# INAIR_SPEED
 				dbg("INV_SPEED: ", 1.0 - clamp(velocity.length(), 0.0, 20.0) / 20.0)
 				velocity += _dt * ACC_INAIR * direction * d
-			if velocity.y < 0.0:
-				state = states.FALLING
-			if is_on_floor():
-				state = states.STAND
-		states.FALLING:
-			velocity.y -= GRAVITY * _dt
-			if direction:
-				var d = 1.0 - Vector2(direction.x, direction.z).normalized().dot(Vector2(velocity.x, velocity.z).normalized()) * 0.5 - 0.45
-				dbg("DOT: ", d)
-				velocity += _dt * INAIR_SPEED * direction * d
-			if velocity.y > 0.0:
-				state = states.INAIR
-			if is_on_floor():
-				state = states.STAND
-			if is_on_wall_only():
+			
+			if velocity.y < 0.0 && wall_normal:
 				velocity.y += GRAVITY * _dt * 0.7
+			if is_on_floor():
+				state = states.STAND
 		states.HOOKED:
 			if Input.is_action_just_released("SPACE"):
 				state = states.STAND
@@ -418,6 +438,8 @@ func _physics_process(_dt: float) -> void:
 				velocity.y = JUMP_STRENGTH
 				if slider:
 					velocity += slider.last_dir.normalized() * slider.papa_speed
+				inair_jumps = MAX_AIRJUMPS
+				jump_buffer = -0.1
 				cleanup_ride()
 				return
 			return
@@ -431,28 +453,27 @@ func _physics_process(_dt: float) -> void:
 
 
 func handle_jump():
+	wall_normal = Vector3.ZERO
+	var target = Vector3.ZERO
+	var phys = PhysicsServer3D.space_get_direct_state(get_world_3d().space)
+	for i in range(0, 360, 30):
+		var ray = PhysicsRayQueryParameters3D.create(
+			global_position, 
+			global_position + Vector3(1, 0.5, 0).rotated(Vector3(0, 1, 0), deg_to_rad(i)), 1)
+		var ray_coll = phys.intersect_ray(ray)
+		if 'collider' in ray_coll.keys():
+			target += ray_coll['normal']
+	
+	target = target.normalized()
+	#if !is_on_floor():
+	wall_normal = target
 	if jump_buffer > 0.0:
-		# wall jump
-		if is_on_wall_only() && state != states.HOOKED:
-			
-			var target = Vector3.ZERO
-			var phys = PhysicsServer3D.space_get_direct_state(get_world_3d().space)
-			for i in range(0, 360, 30):
-				var ray = PhysicsRayQueryParameters3D.create(
-					global_position, 
-					global_position + Vector3(1, 0, 0).rotated(Vector3(0, 1, 0), deg_to_rad(i)), 1)
-				var ray_coll = phys.intersect_ray(ray)
-				if 'collider' in ray_coll.keys():
-					target += ray_coll['normal']
-			
-			target = target.normalized()
-
-			if target:
-				velocity.y = JUMP_STRENGTH
-				velocity += target * 15
-				state = states.INAIR
-				jump_buffer = 0.0
-				return
+		if state != states.HOOKED && target && !is_on_floor():
+			velocity.y = JUMP_STRENGTH
+			velocity += target * 15
+			state = states.INAIR
+			jump_buffer = 0.0
+			return
 
 		# coyote jump
 		elif coyot_time < MAX_COYOT_TIME:

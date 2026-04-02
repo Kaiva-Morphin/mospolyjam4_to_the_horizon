@@ -7,6 +7,7 @@ extends Node3D
 @export var OFFSET : Vector3 = Vector3(0, -2.2, 0)
 @onready var papa = $Papa
 @export var papa_speed = 10.0
+@export var segment_len: float = 1.0
 func _ready() -> void:
 	var dot = $Mesh;
 	var points = origin_path.curve.get_baked_points()
@@ -36,7 +37,7 @@ func _ready() -> void:
 				de.show()
 		var s = CollisionShape3D.new()
 		var b : BoxShape3D = BoxShape3D.new()
-		b.size = Vector3.ONE * 0.5
+		b.size = Vector3.ONE * 1.5
 		var l = (p1-p2).length()
 		b.size.z = l + 0.3
 		s.shape = b
@@ -44,20 +45,70 @@ func _ready() -> void:
 		s.look_at_from_position(p1, p2)
 		s.position = c
 		
+		#var m = MeshInstance3D.new()
+		#m.mesh = BoxMesh.new()
+		#m.mesh.size = Vector3.ONE * 0.35
+		#m.mesh.size.y *= 0.75
+		#m.mesh.size.z = l + 0.2
+		#add_child(m)
+		#m.look_at_from_position(p1, p2)
+		#m.position = c + OFFSET
+	var curve = origin_path.curve
+	var total_len = curve.get_baked_length()
+
+	var t = 0.0
+	while t < total_len:
+		var t2 = min(t + segment_len, total_len)
+		
+		var p1 = curve.sample_baked(t, true)
+		var p2 = curve.sample_baked(t2, true)
+		var c = (p1 + p2) * 0.5
+		var l = (p1 - p2).length()
+		
+		# --- рейка вниз ---
+		if max_stick_len > 0.0:
+			var ray = PhysicsRayQueryParameters3D.create(
+				c,
+				c - Vector3(0, max_stick_len, 0), 1)
+			var ray_coll = phys.intersect_ray(ray)
+			if 'collider' in ray_coll:
+				var de = dot.duplicate()
+				de.mesh = de.mesh.duplicate()
+				var le = (c - ray_coll.position).length()
+				add_child(de)
+				de.position = (c + ray_coll.position) * 0.5 + OFFSET
+				de.mesh.height = le
+				de.show()
+		
+		# --- коллизия ---
+		#var s = CollisionShape3D.new()
+		#var b := BoxShape3D.new()
+		#b.size = Vector3.ONE * 0.5
+		#b.size.z = segment_len + 0.3
+		#s.shape = b
+		#area.add_child(s)
+		#s.look_at_from_position(p1, p2)
+		#s.position = c
+		#
+		# --- меш ---
 		var m = MeshInstance3D.new()
-		m.mesh = BoxMesh.new()
-		m.mesh.size = Vector3.ONE * 0.35
-		m.mesh.size.y *= 0.75
-		m.mesh.size.z = l + 0.2
+		var box := BoxMesh.new()
+		box.size = Vector3.ONE * 0.35
+		box.size.y *= 0.75
+		box.size.x *= 1.5
+		box.size.z = segment_len + 0.2
+		m.mesh = box
 		add_child(m)
 		m.look_at_from_position(p1, p2)
 		m.position = c + OFFSET
-
+		
+		t = t2
 
 var tracked = null
 func _on_area_3d_body_entered(body: Node3D) -> void:
 	if !body.is_in_group("Player"): return
 	if body.slider != null: return
+	print("BEG")
 	tracked = body
 	running = false
 	
@@ -81,27 +132,44 @@ func _process(delta: float) -> void:
 		var offset_from = origin_path.curve.get_closest_offset(tracked.position)
 		var v = tracked.velocity
 		var vd = tracked.velocity.length_squared()
-		print(vd)
 		if vd < 350.0:
 			v = -tracked.transform.basis.z
-		var offset_to = origin_path.curve.get_closest_offset(tracked.position - v)
+		var offset_to = origin_path.curve.get_closest_offset(tracked.position - v.normalized())
 		run_dir = 1.0 if (offset_from - offset_to) > 0.0 else -1.0;
-		var run_dir_vec = origin_path.curve.get_closest_point(tracked.position) - origin_path.curve.get_closest_point(tracked.position + tracked.transform.basis.z)
+		var tr = origin_path.curve.sample_baked_with_rotation(offset_from, true)
+		var tangent = -tr.basis.z.normalized()
+		# var run_dir_vec = origin_path.curve.get_closest_point(tracked.position) - origin_path.curve.get_closest_point(tracked.position + tracked.transform.basis.z)
+		var run_dir_vec = tangent
 		progress = offset_from
 		running = true
 		trigger_ride.emit(self)
 		
 		papa_speed = Vector2(tracked.velocity.x, tracked.velocity.z).project(Vector2(run_dir_vec.x, run_dir_vec.z).normalized()).length() + 7.0
+		prints(papa_speed, Vector2(tracked.velocity.x, tracked.velocity.z) == Vector2(tracked.velocity.x, tracked.velocity.z))
+		prints(Vector2(tracked.velocity.x, tracked.velocity.z).project(Vector2(run_dir_vec.x, run_dir_vec.z).normalized()))
+		prints(tracked.velocity, run_dir_vec)
+		
 		tracked = null
 		if offset_from == offset_to:
-			run_dir = 1.0
-			papa_speed = 0.0
+			var l = origin_path.curve.get_baked_length()
+			if offset_from < 0.1:
+				progress = 0.2
+				run_dir = 1.0
+				#papa_speed = 0.0
+			elif offset_from > l - 0.1:
+				progress = l - 0.2
+				run_dir = -1.0
+				#papa_speed = 0.0
+			else:
+				run_dir = 1.0
+				progress = l - 0.1
+				#papa_speed = 0.0
 		return
 	progress += run_dir * delta * papa_speed
 	papa.position = origin_path.curve.sample_baked(progress, true)
 	if papa_speed < 15.0:
 		papa_speed = move_toward(papa_speed, 15.0, delta * 5.0)
-	if progress >= origin_path.curve.get_baked_length() - 0.1 || progress <= 0.0:
+	if progress >= origin_path.curve.get_baked_length() - 0.1 || progress <= 0.1:
 		var p = origin_path.curve.sample_baked(progress - run_dir * 0.1, true)
 		var v = (papa.position - p).normalized()
 		track_end.emit(v * papa_speed)
@@ -111,4 +179,5 @@ func _process(delta: float) -> void:
 
 func _on_area_3d_body_exited(body: Node3D) -> void:
 	if !body.is_in_group("Player"): return
+	print("END")
 	tracked = null

@@ -6,13 +6,37 @@ extends Node3D
 @export var damping = 4.0
 @export var max_force = 150.0
 
+func dist(v):
+	var m : ShaderMaterial = $OutOfRangeRing.material_override
+	var max_dist = attention_distance * 4.0;
+	var f = clamp(pow((1 - (v - attention_distance) / max_dist), 5.0), 0.0, 1.0)
+	var d = f * 1.5 + 1.0
+	m.set_shader_parameter("uv_scale_factor", d)
+	var c = Color.from_rgba8(255,255,255,int(255*f))
+	m.set_shader_parameter("albedo", c)
+
 func _ready() -> void:
 	unfocus()
+	$AnimationPlayer.play('unfocused')
+	$OutOfRangeRing.hide()
+	$OutOfRange.hide()
+	$Ready.hide()
+	$InRange.hide()
 
 func focus():
-	$Focused.show()
-	$Idle.hide()
+	$OutOfRange.hide()
+	$OutOfRangeRing.hide()
+	$Ready.show()
+	$InRange.hide()
+
+func in_range():
+	$OutOfRangeRing.hide()
+	$OutOfRange.hide()
+	$Ready.hide()
+	$InRange.show()
 
 func unfocus():
-	$Focused.hide()
-	$Idle.show()
+	$OutOfRangeRing.show()
+	$OutOfRange.show()
+	$Ready.hide()
+	$InRange.hide()
