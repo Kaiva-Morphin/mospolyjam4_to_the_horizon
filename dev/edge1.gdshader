@@ -1,92 +1,103 @@
 shader_type spatial;
-render_mode unshaded, depth_draw_never;
+render_mode unshaded;
 
-const int kernelSize = 16;
-const vec3 kernel[16] = {
-	vec3(0.019026, 0.014279, 0.010519),
-	vec3(-0.024865, 0.007903, 0.064579),
-	vec3(-0.019492, 0.042650, 0.017825),
-	vec3(0.026718, -0.026148, 0.014359),
-	vec3(-0.053264, -0.057006, 0.091722),
-	vec3(0.056508, -0.080027, 0.052389),
-	vec3(-0.114437, 0.013222, 0.105258),
-	vec3(0.084779, -0.132078, 0.057769),
-	vec3(-0.013898, -0.089416, 0.171408),
-	vec3(-0.131400, -0.059863, 0.038088),
-	vec3(-0.009884, 0.009850, 0.001457),
-	vec3(-0.010069, -0.031745, 0.012010),
-	vec3(0.335164, 0.352856, 0.006707),
-	vec3(0.348525, 0.232004, 0.126843),
-	vec3(0.415091, 0.146300, 0.212393),
-	vec3(0.143938, 0.040199, 0.314998)
-};
+// pixel sampling radius
+uniform float scale = 1.0;
 
-uniform float radius: hint_range(0.0, 5.0) = 0.5;
-uniform float bias: hint_range(0.0, 1.0) = 0.025;
+// outline dilation after computation
+uniform float outline_spread = 1.0;
 
-uniform sampler2D SCREEN_TEXTURE: hint_screen_texture, source_color, repeat_disable;
-uniform sampler2D DEPTH_TEXTURE: hint_depth_texture, repeat_disable, filter_nearest;
+uniform vec4 _Color : source_color = vec4(0.0, 1.0, 0.0, 1.0);
 
-// ЗАМЕНА: нормали берём из screen normal texture
-uniform sampler2D NORMAL_TEXTURE: hint_screen_texture, repeat_disable, filter_nearest;
-uniform sampler2D SSAO_NOISE: filter_nearest, repeat_enable, source_color;
+uniform float _DepthNormalThreshold = 0.1;
+uniform float _DepthNormalThresholdScale = 3.0;
+uniform float _DepthThreshold = 1.5;
+uniform float _NormalThreshold = 2.0;
 
-float get_depth(vec2 uv, mat4 inv_proj) {
-	float depth = texture(DEPTH_TEXTURE, uv).r;
-	float linear_depth = 1.0 / (depth * inv_proj[2].w + inv_proj[3].w);
-	return linear_depth;
-}
+// TEXTURES
+uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, filter_linear_mipmap, repeat_disable;
+uniform sampler2D DEPTH_TEXTURE : hint_depth_texture, filter_linear_mipmap, repeat_disable;
 
-vec3 get_position(vec2 uv, mat4 inv_proj_mat) {
-	vec4 clipSpacePosition = vec4(uv * 2.0 - 1.0, texture(DEPTH_TEXTURE, uv).r, 1.0);
-	vec4 viewSpacePosition = inv_proj_mat * clipSpacePosition;
-	viewSpacePosition /= viewSpacePosition.w;
-	return viewSpacePosition.xyz;
-}
+// заменили
+uniform sampler2D NORMAL_TEXTURE : filter_linear, repeat_disable;
 
-vec3 get_normal(vec2 uv) {
-	vec3 normal = texture(NORMAL_TEXTURE, uv).rgb;
-	return (normal - 0.5) * 2.0;
-}
 
 void fragment() {
-	const vec2 noiseScale = VIEWPORT_SIZE / 4.0;
-	float occlusionSum = 0.0;
+    float half_scale_floor = floor(scale * 0.5);
+    float half_scale_ceil = ceil(scale * 0.5);
 
-	for (int x = -2; x < 2; x++) {
-		for (int y = -2; y < 2; y++) {
-			vec2 uv = SCREEN_UV + vec2(float(x), float(y)) / VIEWPORT_SIZE;
+    vec2 texel_size = vec2(1.0) / vec2(textureSize(SCREEN_TEXTURE, 0));
 
-			vec3 fragPos = get_position(uv, INV_PROJECTION_MATRIX);
-			vec3 normal = texture(NORMAL_TEXTURE, uv).rgb * 2.0 - 1.0;
-			vec3 randomVec = texture(SSAO_NOISE, uv * noiseScale).xyz;
+    vec2 bottom_left_uv  = SCREEN_UV - vec2(texel_size.x, texel_size.y) * half_scale_floor;
+    vec2 top_right_uv    = SCREEN_UV + vec2(texel_size.x, texel_size.y) * half_scale_ceil;
+    vec2 bottom_right_uv = SCREEN_UV + vec2(texel_size.x * half_scale_ceil, -texel_size.y * half_scale_floor);
+    vec2 top_left_uv     = SCREEN_UV + vec2(-texel_size.x * half_scale_floor, texel_size.y * half_scale_ceil);
 
-			vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));
-			vec3 bitangent = cross(normal, tangent);
-			mat3 TBN = mat3(tangent, bitangent, normal);
+    // Normals (RGB only)
+    vec3 normal0 = texture(NORMAL_TEXTURE, bottom_left_uv).rgb;
+    vec3 normal1 = texture(NORMAL_TEXTURE, top_right_uv).rgb;
+    vec3 normal2 = texture(NORMAL_TEXTURE, bottom_right_uv).rgb;
+    vec3 normal3 = texture(NORMAL_TEXTURE, top_left_uv).rgb;
 
-			float occlusion = 0.0;
+    // Depth
+    float depth0 = texture(DEPTH_TEXTURE, bottom_left_uv).r;
+    float depth1 = texture(DEPTH_TEXTURE, top_right_uv).r;
+    float depth2 = texture(DEPTH_TEXTURE, bottom_right_uv).r;
+    float depth3 = texture(DEPTH_TEXTURE, top_left_uv).r;
 
-			for (int i = 0; i < kernelSize; i++) {
-				vec3 sample = TBN * kernel[i];
-				sample = fragPos + sample * radius;
+    vec3 viewNormal = normal0 * 2.0 - 1.0;
+    float NdotV = 1.0 - dot(viewNormal, VIEW);
 
-				vec4 offset = vec4(sample, 1.0);
-				offset = PROJECTION_MATRIX * offset;
-				offset.xyz /= offset.w;
-				offset.xyz = offset.xyz * 0.5 + 0.5;
+    float normalThreshold01 = clamp(((NdotV - _DepthNormalThreshold) / (1.0 - _DepthNormalThreshold)), 0.0, 1.0);
+    float normalThreshold = normalThreshold01 * _DepthNormalThresholdScale + 1.0;
 
-				float sampleDepth = get_position(offset.xy, INV_PROJECTION_MATRIX).z;
-				float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));
+    float depthThreshold = _DepthThreshold * depth0 * normalThreshold;
 
-				occlusion += (sampleDepth >= sample.z + bias ? 1.0 : 0.0) * rangeCheck;
-			}
+    float depthFiniteDifference0 = depth1 - depth0;
+    float depthFiniteDifference1 = depth3 - depth2;
 
-			occlusion /= float(kernelSize);
-			occlusionSum += occlusion;
-		}
-	}
+    float edgeDepth = sqrt(depthFiniteDifference0 * depthFiniteDifference0 +
+                           depthFiniteDifference1 * depthFiniteDifference1) * 100.0;
 
-	ALBEDO = texture(SCREEN_TEXTURE, SCREEN_UV).rgb;
-	ALBEDO *= 1.0 - vec3(occlusionSum / 16.0);
+    edgeDepth = edgeDepth > depthThreshold ? 1.0 : 0.0;
+
+    vec3 normalFiniteDifference0 = normal1 - normal0;
+    vec3 normalFiniteDifference1 = normal3 - normal2;
+
+    float edgeNormal = sqrt(dot(normalFiniteDifference0, normalFiniteDifference0) +
+                            dot(normalFiniteDifference1, normalFiniteDifference1));
+
+    edgeNormal = edgeNormal > _NormalThreshold ? 1.0 : 0.0;
+
+    float edge = max(edgeDepth, edgeNormal);
+
+    float dilated_edge = edge;
+
+    vec2 offsets[4] = vec2[](
+        vec2(texel_size.x, 0.0),
+        vec2(-texel_size.x, 0.0),
+        vec2(0.0, texel_size.y),
+        vec2(0.0, -texel_size.y)
+    );
+
+    float thickness = outline_spread;
+
+    for (int i = 0; i < 4; i++) {
+        vec2 offset_uv = SCREEN_UV + offsets[i] * thickness;
+
+        float depth_n = texture(DEPTH_TEXTURE, offset_uv).r;
+        vec3 normal_n = texture(NORMAL_TEXTURE, offset_uv).rgb;
+
+        float depth_diff = depth_n - depth0;
+        vec3 normal_diff = normal_n - normal0;
+
+        float edge_depth_n = (abs(depth_diff) * 100.0 > _DepthThreshold) ? 1.0 : 0.0;
+        float edge_normal_n = (length(normal_diff) > _NormalThreshold) ? 1.0 : 0.0;
+
+        dilated_edge = max(dilated_edge, max(edge_depth_n, edge_normal_n));
+    }
+
+    vec4 edgeColor = vec4(_Color.rgb, _Color.a * dilated_edge);
+
+    ALBEDO = mix(texture(SCREEN_TEXTURE, SCREEN_UV).rgb, edgeColor.rgb, edgeColor.a);
 }

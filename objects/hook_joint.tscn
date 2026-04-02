@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://hdk7m8c2egln"]
+
+[ext_resource type="Script" uid="uid://d2pcrr0uo3uii" path="res://objects/hook_joint.gd" id="1_tel1d"]
+[ext_resource type="Texture2D" uid="uid://0vsunmvspqak" path="res://assets/hook/hook_activated.png" id="2_jgjyy"]
+[ext_resource type="Texture2D" uid="uid://dfcdprx53ll0r" path="res://assets/hook/hook.png" id="3_g05hb"]
+
+[node name="HookJoint" type="Node3D" unique_id=502497142 groups=["HookJoint"]]
+script = ExtResource("1_tel1d")
+
+[node name="Focused" type="Sprite3D" parent="." unique_id=1440383153]
+transform = Transform3D(7, 0, 0, 0, 7, 0, 0, 0, 7, 0, 0, 0)
+visible = false
+billboard = 1
+texture_filter = 0
+texture = ExtResource("2_jgjyy")
+
+[node name="Idle" type="Sprite3D" parent="." unique_id=1957290117]
+transform = Transform3D(7, 0, 0, 0, 7, 0, 0, 0, 7, 0, 0, 0)
+billboard = 1
+texture_filter = 0
+texture = ExtResource("3_g05hb")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=159868130]
