@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://1g20344jb6v7"]
+
+[ext_resource type="PackedScene" uid="uid://kr8kv81qvtyu" path="res://objects/drone.scn" id="1_66w07"]
+[ext_resource type="PackedScene" uid="uid://hdk7m8c2egln" path="res://objects/hook_joint.tscn" id="2_72b47"]
+
+[node name="drone_hook" type="Node3D" unique_id=462562401]
+
+[node name="drone" parent="." unique_id=1215487538 instance=ExtResource("1_66w07")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+
+[node name="HookJoint" parent="." unique_id=502497142 instance=ExtResource("2_72b47")]

@@ -1,10 +1,14 @@
 [gd_scene format=3 uid="uid://hdk7m8c2egln"]
 
 [ext_resource type="Script" uid="uid://d2pcrr0uo3uii" path="res://objects/hook_joint.gd" id="1_tel1d"]
+[ext_resource type="Texture2D" uid="uid://b24twy5wtglwq" path="res://assets/vfx/2.png" id="3_jgjyy"]
+[ext_resource type="Texture2D" uid="uid://b3ggnixh6qtpr" path="res://assets/vfx/44.png" id="4_g05hb"]
 [ext_resource type="Texture2D" uid="uid://b504cgoco24y7" path="res://assets/vfx/46.png" id="4_jgjyy"]
 [ext_resource type="Texture2D" uid="uid://c0vo2en4k4fpp" path="res://assets/vfx/45.png" id="6_35iy6"]
+[ext_resource type="PackedScene" uid="uid://kr8kv81qvtyu" path="res://objects/drone.scn" id="6_wu2md"]
 
 [sub_resource type="Shader" id="Shader_wu2md"]
+resource_local_to_scene = true
 code = "shader_type spatial;
 render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_schlick_ggx;
 
@@ -77,6 +81,7 @@ void fragment() {
 }"
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_35iy6"]
+resource_local_to_scene = true
 render_priority = 0
 shader = SubResource("Shader_wu2md")
 shader_parameter/albedo = Color(18.892157, 18.892157, 18.892157, 1)
@@ -101,6 +106,7 @@ size = Vector2(4, 4)
 load_path = "res://.godot/imported/46.png-3edc4c92c11951d1561e68bbdd8c79e3.ctex"
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_wu2md"]
+resource_local_to_scene = true
 render_priority = 0
 shader = SubResource("Shader_wu2md")
 shader_parameter/albedo = Color(18.892157, 18.892157, 18.892157, 1)
@@ -119,9 +125,10 @@ shader_parameter/uv_rotation_speed = 0.0
 shader_parameter/uv_scale_factor = 1.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_2dp7c"]
+resource_local_to_scene = true
 render_priority = 0
 shader = SubResource("Shader_wu2md")
-shader_parameter/albedo = Color(18.892157, 18.892157, 18.892157, 0.02745098)
+shader_parameter/albedo = Color(0.623307, 0.8700167, 1, 1)
 shader_parameter/texture_albedo = ExtResource("6_35iy6")
 shader_parameter/albedo_texture_size = Vector2i(0, 0)
 shader_parameter/point_size = 0.0
@@ -133,10 +140,11 @@ shader_parameter/uv1_scale = Vector3(1, 1, 1)
 shader_parameter/uv1_offset = Vector3(0, 0, 0)
 shader_parameter/uv2_scale = Vector3(1, 1, 1)
 shader_parameter/uv2_offset = Vector3(0, 0, 0)
-shader_parameter/uv_rotation_speed = 20.0
+shader_parameter/uv_rotation_speed = 1.0
 shader_parameter/uv_scale_factor = 1.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ote7v"]
+resource_local_to_scene = true
 render_priority = 0
 shader = SubResource("Shader_wu2md")
 shader_parameter/albedo = Color(18.892157, 18.892157, 18.892157, 0.2627451)
@@ -158,7 +166,7 @@ shader_parameter/uv_scale_factor = 1.0
 render_priority = 0
 shader = SubResource("Shader_wu2md")
 shader_parameter/albedo = Color(1.353256, 1.353256, 1.353256, 1)
-shader_parameter/texture_albedo = ExtResource("4_jgjyy")
+shader_parameter/texture_albedo = ExtResource("4_g05hb")
 shader_parameter/albedo_texture_size = Vector2i(0, 0)
 shader_parameter/point_size = 0.0
 shader_parameter/roughness = 0.0
@@ -173,14 +181,88 @@ shader_parameter/uv_rotation_speed = 0.0
 shader_parameter/uv_scale_factor = 1.0
 
 [sub_resource type="QuadMesh" id="QuadMesh_2dp7c"]
+resource_local_to_scene = true
 size = Vector2(4, 4)
+
+[sub_resource type="Shader" id="Shader_jgjyy"]
+resource_local_to_scene = true
+code = "shader_type spatial;
+render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_schlick_ggx;
+
+uniform vec4 albedo : source_color;
+uniform sampler2D texture_albedo : source_color, filter_linear_mipmap;
+uniform ivec2 albedo_texture_size;
+uniform float point_size : hint_range(0.1, 128.0, 0.1);
+
+uniform float roughness : hint_range(0.0, 1.0);
+uniform sampler2D texture_metallic : hint_default_white, filter_linear_mipmap;
+uniform vec4 metallic_texture_channel;
+uniform sampler2D texture_roughness : hint_roughness_r, filter_linear_mipmap;
+
+uniform float specular : hint_range(0.0, 1.0, 0.01);
+uniform float metallic : hint_range(0.0, 1.0, 0.01);
+
+uniform vec3 uv1_scale;
+uniform vec3 uv1_offset;
+uniform vec3 uv2_scale;
+uniform vec3 uv2_offset;
+
+// --- Новые параметры ---
+uniform float uv_rotation_speed = 1.0;
+uniform float uv_scale_factor = 1.0;
+
+void vertex() {
+	UV = UV * uv1_scale.xy + uv1_offset.xy;
+
+	// Billboard Mode: Enabled
+	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(
+			MAIN_CAM_INV_VIEW_MATRIX[0],
+			MAIN_CAM_INV_VIEW_MATRIX[1],
+			MAIN_CAM_INV_VIEW_MATRIX[2],
+			MODEL_MATRIX[3]);
+	MODELVIEW_NORMAL_MATRIX = mat3(MODELVIEW_MATRIX);
+}
+
+void fragment() {
+	vec2 base_uv = UV;
+	base_uv = clamp(base_uv, vec2(0.0), vec2(1.0));
+
+	// --- Центр UV ---
+	vec2 center = vec2(0.5);
+
+	// --- Scale ---
+	base_uv = (base_uv - center) * uv_scale_factor + center;
+	
+	// --- Rotation ---
+	float angle = TIME * uv_rotation_speed;
+	float s = sin(angle);
+	float c = cos(angle);
+
+	mat2 rot = mat2(vec2(c, -s), vec2(s, c));
+	base_uv = rot * (base_uv - center) + center;
+	base_uv = clamp(base_uv, vec2(0.0), vec2(1.0));
+
+	// --- Текстуры ---
+	vec4 albedo_tex = texture(texture_albedo, base_uv);
+	ALBEDO = albedo.rgb * albedo_tex.rgb;
+
+	float metallic_tex = dot(texture(texture_metallic, base_uv), metallic_texture_channel);
+	METALLIC = metallic_tex * metallic;
+	SPECULAR = specular;
+
+	vec4 roughness_texture_channel = vec4(1.0, 0.0, 0.0, 0.0);
+	float roughness_tex = dot(texture(texture_roughness, base_uv), roughness_texture_channel);
+	ROUGHNESS = roughness_tex * roughness;
+
+	ALPHA *= albedo.a * albedo_tex.a;
+}"
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_tel1d"]
 resource_local_to_scene = true
 render_priority = 0
-shader = SubResource("Shader_wu2md")
+shader = SubResource("Shader_jgjyy")
 shader_parameter/albedo = Color(1.353256, 1.353256, 1.353256, 0.99607843)
-shader_parameter/texture_albedo = ExtResource("4_jgjyy")
+shader_parameter/texture_albedo = ExtResource("4_g05hb")
 shader_parameter/albedo_texture_size = Vector2i(0, 0)
 shader_parameter/point_size = 0.0
 shader_parameter/roughness = 0.0
@@ -311,14 +393,16 @@ _data = {
 &"unfocused": SubResource("Animation_35iy6")
 }
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_35iy6"]
-billboard_mode = 3
-billboard_keep_scale = true
-particles_anim_h_frames = 1
-particles_anim_v_frames = 1
-particles_anim_loop = false
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jgjyy"]
+albedo_color = Color(2.582784, 2.582784, 2.582784, 1)
+albedo_texture = ExtResource("3_jgjyy")
+billboard_mode = 1
+distance_fade_mode = 1
+distance_fade_min_distance = 5.25
+distance_fade_max_distance = 149.57
 
-[sub_resource type="QuadMesh" id="QuadMesh_wu2md"]
+[sub_resource type="QuadMesh" id="QuadMesh_g05hb"]
+size = Vector2(10, 10)
 
 [node name="HookJoint" type="Node3D" unique_id=502497142 groups=["HookJoint"]]
 script = ExtResource("1_tel1d")
@@ -329,6 +413,7 @@ material_override = SubResource("ShaderMaterial_35iy6")
 mesh = SubResource("QuadMesh_ote7v")
 
 [node name="Unfocused2" type="MeshInstance3D" parent="InRange" unique_id=1113103325]
+visible = false
 material_override = SubResource("ShaderMaterial_wu2md")
 mesh = SubResource("QuadMesh_ote7v")
 
@@ -337,11 +422,11 @@ material_override = SubResource("ShaderMaterial_2dp7c")
 mesh = SubResource("QuadMesh_ote7v")
 
 [node name="Unfocused3" type="MeshInstance3D" parent="Ready" unique_id=1023050980]
+visible = false
 material_override = SubResource("ShaderMaterial_ote7v")
 mesh = SubResource("QuadMesh_ote7v")
 
 [node name="OutOfRange" type="MeshInstance3D" parent="." unique_id=2095005669]
-visible = false
 material_override = SubResource("ShaderMaterial_rqx17")
 mesh = SubResource("QuadMesh_2dp7c")
 
@@ -353,10 +438,9 @@ mesh = SubResource("QuadMesh_tel1d")
 libraries/ = SubResource("AnimationLibrary_g05hb")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=159868130]
-visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.12317276)
+material_override = SubResource("StandardMaterial3D_jgjyy")
+mesh = SubResource("QuadMesh_g05hb")
 
-[node name="MeshInstance3D2" type="MeshInstance3D" parent="." unique_id=194444779]
-rotation_edit_mode = 2
-visible = false
-material_override = SubResource("StandardMaterial3D_35iy6")
-mesh = SubResource("QuadMesh_wu2md")
+[node name="drone" parent="." unique_id=1215487538 instance=ExtResource("6_wu2md")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0.0017032623, 4.570427, 0.0146023035)

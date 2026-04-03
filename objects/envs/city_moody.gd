@@ -8,7 +8,7 @@ extends Node3D
 
 @export var default_energy: float = 0.2
 @export var default_sun : Color = Color.WHITE
-@export var default_cloud : Color = Color("#6d757d") # Color.from_rgba8(75, 103, 133)
+@export var default_cloud : Color = Color("#6d757d")
 
 
 

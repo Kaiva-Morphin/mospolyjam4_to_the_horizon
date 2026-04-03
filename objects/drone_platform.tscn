@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://duct8w2xrvwwn"]
+
+[ext_resource type="PackedScene" uid="uid://clrqeec4uu812" path="res://objects/platform.scn" id="1_jgwcl"]
+[ext_resource type="PackedScene" uid="uid://dnr556p1juryu" path="res://objects/joint.tscn" id="2_bdpbc"]
+[ext_resource type="PackedScene" uid="uid://kr8kv81qvtyu" path="res://objects/drone.scn" id="3_bdpbc"]
+
+[node name="drone_platform" type="Node3D" unique_id=1445370451]
+
+[node name="platform" parent="." unique_id=599120366 instance=ExtResource("1_jgwcl")]
+
+[node name="joint" parent="." unique_id=1571229406 instance=ExtResource("2_bdpbc")]
+transform = Transform3D(5, 0, 0, 0, 5, 0, 0, 0, 5, 0, 10.318089, 0)
+
+[node name="drone" parent="." unique_id=1215487538 instance=ExtResource("3_bdpbc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 14, 0)

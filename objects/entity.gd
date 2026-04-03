@@ -54,34 +54,37 @@ var JUMP_BUFFER_TIME = 0.15
 var jump_buffer = 0.0
 
 
+func return_to_checkpoint():
+	cleanup_ride()
+	velocity = Vector3.ZERO
+	state = states.STAND
+	self.rotation = c_rot
+	global_position = checkpoint
+
 @onready var rope = $"../Rope"
 @onready var rope_mesh = $"../Rope/Rope"
 var checkpoint
 var c_rot
-var origin
 func _ready() -> void:
 	init_debug()
-	origin = global_position
-	checkpoint = origin
+	checkpoint = global_position
 	c_rot = self.rotation
 	update_hook_joints()
 	rope.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	for slider_ in get_tree().get_nodes_in_group("Slider"):
 		slider_.trigger_ride.connect(on_slider_ride)
 
+
 func _process(_dt: float) -> void:
-	if Input.is_action_just_pressed("C"):
+	if global_position.y < -75.0: return_to_checkpoint()
+	if Input.is_action_just_pressed("C") && is_on_floor():
 		checkpoint = global_position
 		c_rot = self.rotation
+		$"../checkpoint".position = global_position
+		
 	if Input.is_action_just_pressed("R"):
-		velocity = Vector3.ZERO
-		state = states.STAND
-		self.rotation = c_rot
-		global_position = checkpoint
-	if Input.is_action_just_pressed("F"):
-		velocity = Vector3.ZERO
-		state = states.STAND
-		global_position = checkpoint
+		return_to_checkpoint()
+		return
 	dbg("FPS: ", Engine.get_frames_per_second())
 	update_debug()
 	
@@ -98,7 +101,7 @@ func _process(_dt: float) -> void:
 		rope.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 		rope.hide()
 	
-	var speed = velocity.length() # Vector2(velocity.x, velocity.z).length()
+	var speed = velocity.length()
 	camera.fov = lerp(camera.fov, 95.0 + 0.5 * speed, _dt * 20.0)
 	
 	if Input.is_action_just_pressed("ESC"):
@@ -254,7 +257,6 @@ func update_hook_joints():
 
 
 
-
 var wall_normal : = Vector3.ZERO
 func _physics_process(_dt: float) -> void:
 	if Input.is_action_just_pressed("SPACE"):
@@ -265,6 +267,7 @@ func _physics_process(_dt: float) -> void:
 	if !prev_ride_tick: cleanup_ride()
 	
 	#region JOINTS
+	update_hook_joints()
 	var nearest_joint = null
 	var best_score = -INF
 	var space_state = get_world_3d().direct_space_state
@@ -281,8 +284,8 @@ func _physics_process(_dt: float) -> void:
 		var dir = to_point / dist
 		var forward = -camera.global_transform.basis.z
 		var dot = dir.dot(forward)
-		var near_angle = 0.85
-		var far_angle = 0.99
+		var near_angle = 0.45
+		var far_angle = 0.69
 		var t = clamp(dist / node.attention_distance, 0.0, 1.0)
 		var threshold = lerp(near_angle, far_angle, t)
 		if dot > threshold:
@@ -301,7 +304,7 @@ func _physics_process(_dt: float) -> void:
 	
 	if nearest_joint:
 		nearest_joint.focus()
-		if Input.is_action_just_pressed("SPACE"):
+		if Input.is_action_pressed("LMB") && state != states.HOOKED:
 			hook_target = nearest_joint
 			if state == states.RIDING:
 				cleanup_ride()
@@ -314,32 +317,16 @@ func _physics_process(_dt: float) -> void:
 		coyot_time = 0.0
 	else:
 		coyot_time += _dt
+	
 	input_dir = Input.get_vector("A", "D", "W", "S")
 	var direction = (transform.basis * Vector3(input_dir.x, 0.0, input_dir.y)).normalized()
-	
-	#var target_tilt = tilt_limit
-	#var current_rotation = camera.rotation_degrees
-	#if wall_normal:
-		#target_tilt *= input_dir.x
-		#current_rotation.z = lerp(current_rotation.z, target_tilt, TILT_WALL_STRENGTH)
-	#else:
-		#target_tilt *= -input_dir.x
-		#current_rotation.z = lerp(current_rotation.z, target_tilt, TILT_STRENGTH)
-	#
-	#current_rotation.z = clamp(current_rotation.z, -tilt_limit, tilt_limit)
-	
-	#camera.rotation_degrees = current_rotation
-	
-	
 	var current_rotation = camera.rotation_degrees
 	dbg("normal: ", wall_normal)
 	if wall_normal && !is_on_floor():
 		var forward = -camera.global_transform.basis.z
 		var normal = wall_normal.normalized()
-		# Определяем сторону стены относительно взгляда
-		var side = forward.cross(normal).y   # знак (+/-)
-		# Сила наклона (можно ослабить если смотришь прямо в стену)
-		var facing = 1.0 - abs(forward.dot(normal))  # 0 = прямо в стену, 1 = вдоль
+		var side = forward.cross(normal).y
+		var facing = 1.0 - abs(forward.dot(normal))
 		var target_tilt = tilt_limit * side * facing
 		current_rotation.z = lerp(
 			current_rotation.z,
@@ -356,11 +343,9 @@ func _physics_process(_dt: float) -> void:
 			TILT_STRENGTH
 		)
 	camera.rotation_degrees = current_rotation
-	
 	var floor_normal := Vector3.UP
 	if is_on_floor():
 		floor_normal = get_floor_normal()
-	#if is_on_floor():
 		inair_jumps = MAX_AIRJUMPS
 	if direction != Vector3.ZERO:
 		direction = direction.slide(floor_normal).normalized()
@@ -397,7 +382,6 @@ func _physics_process(_dt: float) -> void:
 				d += 1.0 - clamp(velocity.length(), 0.0, 18.0) / 18.0
 				d = clamp(d, 0.0, 1.0)
 				dbg("DOT: ", d)
-				# INAIR_SPEED
 				dbg("INV_SPEED: ", 1.0 - clamp(velocity.length(), 0.0, 20.0) / 20.0)
 				velocity += _dt * ACC_INAIR * direction * d
 			
@@ -406,7 +390,7 @@ func _physics_process(_dt: float) -> void:
 			if is_on_floor():
 				state = states.STAND
 		states.HOOKED:
-			if Input.is_action_just_released("SPACE"):
+			if Input.is_action_just_released("LMB"):
 				state = states.STAND
 				hook_target = null
 				return
@@ -450,8 +434,6 @@ func _physics_process(_dt: float) -> void:
 	move_and_slide()
 
 
-
-
 func handle_jump():
 	wall_normal = Vector3.ZERO
 	var target = Vector3.ZERO
@@ -473,6 +455,7 @@ func handle_jump():
 			velocity += target * 15
 			state = states.INAIR
 			jump_buffer = 0.0
+			inair_jumps = MAX_AIRJUMPS
 			return
 
 		# coyote jump

@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://bp6yyqfbk6vfj"]
+
+[ext_resource type="PackedScene" uid="uid://clrqeec4uu812" path="res://objects/platform.scn" id="1_vwbwu"]
+
+[node name="big_platform" type="Node3D" unique_id=1502898193]
+
+[node name="platform" parent="." unique_id=599120366 instance=ExtResource("1_vwbwu")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -10)
+
+[node name="platform2" parent="." unique_id=1550178586 instance=ExtResource("1_vwbwu")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -10)
+
+[node name="platform3" parent="." unique_id=1944687770 instance=ExtResource("1_vwbwu")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -10)
+
+[node name="platform4" parent="." unique_id=1525151742 instance=ExtResource("1_vwbwu")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 0)
+
+[node name="platform5" parent="." unique_id=1716649798 instance=ExtResource("1_vwbwu")]
+
+[node name="platform6" parent="." unique_id=404854644 instance=ExtResource("1_vwbwu")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 0)
+
+[node name="platform7" parent="." unique_id=1728089529 instance=ExtResource("1_vwbwu")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 10)
+
+[node name="platform8" parent="." unique_id=1581413097 instance=ExtResource("1_vwbwu")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10)
+
+[node name="platform9" parent="." unique_id=1427011818 instance=ExtResource("1_vwbwu")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 10)

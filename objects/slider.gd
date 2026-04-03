@@ -7,7 +7,8 @@ extends Node3D
 @export var OFFSET : Vector3 = Vector3(0, -2.2, 0)
 @onready var papa = $Papa
 @export var papa_speed = 10.0
-@export var segment_len: float = 1.0
+@export var segment_len: float = 2.0
+
 func _ready() -> void:
 	var dot = $Mesh;
 	var points = origin_path.curve.get_baked_points()
@@ -37,22 +38,13 @@ func _ready() -> void:
 				de.show()
 		var s = CollisionShape3D.new()
 		var b : BoxShape3D = BoxShape3D.new()
-		b.size = Vector3.ONE * 1.5
+		b.size = Vector3.ONE * 1.75
 		var l = (p1-p2).length()
 		b.size.z = l + 0.3
 		s.shape = b
 		area.add_child(s)
 		s.look_at_from_position(p1, p2)
 		s.position = c
-		
-		#var m = MeshInstance3D.new()
-		#m.mesh = BoxMesh.new()
-		#m.mesh.size = Vector3.ONE * 0.35
-		#m.mesh.size.y *= 0.75
-		#m.mesh.size.z = l + 0.2
-		#add_child(m)
-		#m.look_at_from_position(p1, p2)
-		#m.position = c + OFFSET
 	var curve = origin_path.curve
 	var total_len = curve.get_baked_length()
 
@@ -65,7 +57,6 @@ func _ready() -> void:
 		var c = (p1 + p2) * 0.5
 		var l = (p1 - p2).length()
 		
-		# --- рейка вниз ---
 		if max_stick_len > 0.0:
 			var ray = PhysicsRayQueryParameters3D.create(
 				c,
@@ -74,23 +65,12 @@ func _ready() -> void:
 			if 'collider' in ray_coll:
 				var de = dot.duplicate()
 				de.mesh = de.mesh.duplicate()
-				var le = (c - ray_coll.position).length()
+				var le = (c - ray_coll.position + OFFSET).length()
 				add_child(de)
-				de.position = (c + ray_coll.position) * 0.5 + OFFSET
+				de.position = (c + ray_coll.position + OFFSET) * 0.5
 				de.mesh.height = le
 				de.show()
 		
-		# --- коллизия ---
-		#var s = CollisionShape3D.new()
-		#var b := BoxShape3D.new()
-		#b.size = Vector3.ONE * 0.5
-		#b.size.z = segment_len + 0.3
-		#s.shape = b
-		#area.add_child(s)
-		#s.look_at_from_position(p1, p2)
-		#s.position = c
-		#
-		# --- меш ---
 		var m = MeshInstance3D.new()
 		var box := BoxMesh.new()
 		box.size = Vector3.ONE * 0.35

@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://qnnqnbmt7hew"]
+
+[ext_resource type="PackedScene" uid="uid://clrqeec4uu812" path="res://objects/platform.scn" id="1_5mbf7"]
+
+[node name="medium_platform" type="Node3D" unique_id=1593823961]
+
+[node name="platform46" parent="." unique_id=599120366 instance=ExtResource("1_5mbf7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -5)
+
+[node name="platform47" parent="." unique_id=1846431927 instance=ExtResource("1_5mbf7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -5)
+
+[node name="platform48" parent="." unique_id=1248322102 instance=ExtResource("1_5mbf7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 5)
+
+[node name="platform49" parent="." unique_id=1697259731 instance=ExtResource("1_5mbf7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 5)
