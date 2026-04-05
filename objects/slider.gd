@@ -51,12 +51,10 @@ func _ready() -> void:
 	var t = 0.0
 	while t < total_len:
 		var t2 = min(t + segment_len, total_len)
-		
 		var p1 = curve.sample_baked(t, true)
 		var p2 = curve.sample_baked(t2, true)
 		var c = (p1 + p2) * 0.5
-		var l = (p1 - p2).length()
-		
+		#var l = (p1 - p2).length()
 		if max_stick_len > 0.0:
 			var ray = PhysicsRayQueryParameters3D.create(
 				c,
@@ -70,7 +68,6 @@ func _ready() -> void:
 				de.position = (c + ray_coll.position + OFFSET) * 0.5
 				de.mesh.height = le
 				de.show()
-		
 		var m = MeshInstance3D.new()
 		var box := BoxMesh.new()
 		box.size = Vector3.ONE * 0.35
@@ -78,20 +75,18 @@ func _ready() -> void:
 		box.size.x *= 1.5
 		box.size.z = segment_len + 0.2
 		m.mesh = box
+		m.material_override = $Mesh.material_override
 		add_child(m)
 		m.look_at_from_position(p1, p2)
 		m.position = c + OFFSET
-		
 		t = t2
 
 var tracked = null
 func _on_area_3d_body_entered(body: Node3D) -> void:
 	if !body.is_in_group("Player"): return
 	if body.slider != null: return
-	print("BEG")
 	tracked = body
 	running = false
-	
 
 var followed = null
 
@@ -156,5 +151,5 @@ func _process(delta: float) -> void:
 
 func _on_area_3d_body_exited(body: Node3D) -> void:
 	if !body.is_in_group("Player"): return
-	print("END")
+	#print("END")
 	tracked = null

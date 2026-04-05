@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://dat1ms6gq8v3g"
+path="res://.godot/imported/54 - Rush.mp3-eecc3c121cf0996ee782b52b1452bcbf.mp3str"
+
+[deps]
+
+source_file="res://assets/audio/54 - Rush.mp3"
+dest_files=["res://.godot/imported/54 - Rush.mp3-eecc3c121cf0996ee782b52b1452bcbf.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

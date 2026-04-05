@@ -10,17 +10,16 @@ _data = {
 }
 point_count = 1
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_k8sl0"]
-top_radius = 0.1
-bottom_radius = 0.1
-radial_segments = 5
-rings = 1
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_62or7"]
+albedo_color = Color(18.892002, 18.892002, 18.892002, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7x0c2"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_6yujf"]
 
 [node name="Slider" type="Node3D" unique_id=1299570957 groups=["Slider"]]
 script = ExtResource("1_7x0c2")
-max_stick_len = 20.0
+max_stick_len = 0.0
 
 [node name="Path3D" type="Path3D" parent="." unique_id=1568783500]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.9127808, 0)
@@ -31,7 +30,8 @@ curve = SubResource("Curve3D_u7ytp")
 [node name="Mesh" type="MeshInstance3D" parent="." unique_id=1886105533]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 visible = false
-mesh = SubResource("CylinderMesh_k8sl0")
+material_override = SubResource("StandardMaterial3D_62or7")
+mesh = SubResource("BoxMesh_7x0c2")
 
 [node name="Papa" type="MeshInstance3D" parent="." unique_id=1903356992]
 visible = false

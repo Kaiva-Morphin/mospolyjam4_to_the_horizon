@@ -53,9 +53,16 @@ var JUMP_BUFFER_TIME = 0.15
 
 var jump_buffer = 0.0
 
-
+var processing_return = false
 func return_to_checkpoint():
+	if processing_return: return
+	processing_return = true
+	$"../Control/AnimationPlayer".play("end")
+
+func finish_return():
+	processing_return = false
 	cleanup_ride()
+	$Node/Checkpoint.play()
 	#hook_target = null
 	velocity = Vector3.ZERO
 	state = states.STAND
@@ -86,10 +93,11 @@ func _ready() -> void:
 	for slider_ in get_tree().get_nodes_in_group("Slider"):
 		slider_.trigger_ride.connect(on_slider_ride)
 	$CenterContainer.hide()
-	unlock()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-
-
+	#unlock()
+	$"../Node3D4/anim1/AnimationPlayer".play("intro/Camera2")
+	$"../Node3D4/anim2/AnimationPlayer".play("intro/ArmatureAction")
+	
 func lock_end():
 	$CenterContainer.hide()
 	locked = true
@@ -110,31 +118,43 @@ func continue_sit():
 	$"../end_anim/AnimationPlayer".play("SitAction")
 
 
-var prev = Input.MOUSE_MODE_CAPTURED
 var min_treshhold = 25.0
 var max_treshold = 35.0
 var prev_pos = Vector3.ZERO
+var min_music_treshold = 10.0
+var max_music_treshold = 20.0
+var min_db = -50.0
+var max_db = -20.0
+
 func _process(_dt: float) -> void:
-	dbg("FPS", Engine)
+	if Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
+		$"../Control/CenterContainer".show()
+	if Input.is_action_just_pressed("F"):
+		$Node/MeowSoundCat.play()
+	dbg("FPS", Engine.get_frames_per_second())
 	var vel = velocity
 	if state == states.RIDING:
 		vel = (slider.last_dir * slider.papa_speed) * 2.0
-		$HOOK.global_position = global_position # + vel * 10.0
+		$HOOK.global_position = global_position
+	var spd = vel.length()
+	var t = clamp(
+		(spd - min_music_treshold) / (max_music_treshold - min_music_treshold),
+		0.0,
+		1.0
+	)
+	var target_db = lerp(min_db, max_db, t)
+	$Node/Music.volume_db = lerp($Node/Music.volume_db, target_db, 5.0 * _dt)
 	if vel != Vector3.ZERO:
-		var v = clamp(clamp(vel.length() - min_treshhold, 0, max_treshold) / (max_treshold - min_treshhold), 0, 1)
+		var v = clamp(
+			clamp(vel.length() - min_treshhold, 0, max_treshold) 
+			/ (max_treshold - min_treshhold),
+			0,
+			1
+		)
 		$"../GPUParticles3D".material_override.albedo_color = Color8(255, 255, 255, 255 * v)
 		$"../GPUParticles3D".look_at(global_position + vel)
 		$"../GPUParticles3D".global_position = $StandCamera.global_position
 	prev_pos = global_position
-	
-	#if Input.mouse_mode != prev:
-		#if Input.MOUSE_MODE_VISIBLE:
-			#$"..".process_mode = Node.PROCESS_MODE_DISABLED
-		#else:
-			#$"..".process_mode = Node.PROCESS_MODE_ALWAYS
-	
-	
-	
 	if Input.is_action_just_pressed("ESC"):
 		if Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -142,22 +162,20 @@ func _process(_dt: float) -> void:
 		else:
 			$"../Control/CenterContainer".show()
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	prev = Input.mouse_mode
 	if state == GLOBAL.ENTITY_STATE.SLIDING:
 		camera.position.y = lerp(camera.position.y, crunch_camera_target.position.y, _dt * CAMERA_INTERPOLATION_SPEED)
 	else:
 		camera.position.y = lerp(camera.position.y, stand_camera_target.position.y, _dt * CAMERA_INTERPOLATION_SPEED)
 	if locked: return
-	if global_position.y < -75.0: return_to_checkpoint()
+	if global_position.y < -75.0:
+		$Node/MetalPipeFallingSound.play()
+		return_to_checkpoint()
 	if !velocity.is_finite() || !global_position.is_finite():
 		return_to_checkpoint()
-
-		
 	if Input.is_action_just_pressed("R"):
 		return_to_checkpoint()
 		return
 	update_debug()
-	
 	if hook_target:
 		var l = global_position - hook_target.global_position
 		var p = (global_position + hook_target.global_position) / 2.0;
@@ -169,10 +187,10 @@ func _process(_dt: float) -> void:
 	else:
 		rope.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 		rope.hide()
-	
 	var speed = velocity.length()
-	camera.fov = lerp(camera.fov, 95.0 + 0.5 * speed, _dt * 20.0)
+	camera.fov = clamp(lerp(camera.fov, 95.0 + 0.5 * speed, _dt * 20.0), 10, 170)
 	if Input.is_action_just_pressed("C") && is_on_floor():
+		$Node/BlltShelShellEject02.play()
 		checkpoint = global_position
 		c_rot = self.rotation
 		$"../checkpoint".position = global_position
@@ -265,10 +283,16 @@ func _physics_process(_dt: float) -> void:
 		jump_buffer = max(jump_buffer - _dt, 0.0)
 	if !prev_ride_tick: cleanup_ride()
 	
+	if inair_jumps > 0:
+		$CenterContainer/Control/DJ.show()
+	else:
+		$CenterContainer/Control/DJ.hide()
+	
 	#region JOINTS
 	update_hook_joints()
 	var nearest_joint = null
 	var best_score = -INF
+	$CenterContainer/Control/Hook.hide()
 	var space_state = get_world_3d().direct_space_state
 	for node in hook_joints:
 		node.unfocus()
@@ -300,16 +324,18 @@ func _physics_process(_dt: float) -> void:
 			if score > best_score:
 				best_score = score
 				nearest_joint = node
-	
 	if nearest_joint:
+		$CenterContainer/Control/Hook.show()
 		nearest_joint.focus()
 		if Input.is_action_pressed("LMB") && state != states.HOOKED:
+			$Node/Button12.play()
 			hook_target = nearest_joint
 			if state == states.RIDING:
 				cleanup_ride()
 				inair_jumps = MAX_AIRJUMPS
 			state = states.HOOKED
 			inair_jumps = MAX_AIRJUMPS
+
 	#endregion
 	
 	if is_on_floor():
@@ -340,6 +366,7 @@ func _physics_process(_dt: float) -> void:
 			0.0,
 			TILT_STRENGTH
 		)
+		
 	camera.rotation_degrees = current_rotation
 	var floor_normal := Vector3.UP
 	if is_on_floor():
@@ -383,6 +410,7 @@ func _physics_process(_dt: float) -> void:
 				state = states.STAND
 		states.HOOKED:
 			if Input.is_action_just_released("LMB"):
+				$Node/Button13.play()
 				state = states.STAND
 				hook_target = null
 				return
@@ -410,6 +438,7 @@ func _physics_process(_dt: float) -> void:
 			if slider:
 				velocity = Vector3.ZERO
 			if Input.is_action_just_pressed("SPACE"):
+				$Node/JumpSound1.play()
 				prev_ride_tick = false
 				state = states.INAIR
 				velocity.y = JUMP_STRENGTH
@@ -440,10 +469,10 @@ func handle_jump():
 			target += ray_coll['normal']
 	
 	target = target.normalized()
-	#if !is_on_floor():
 	wall_normal = target
 	if jump_buffer > 0.0:
 		if state != states.HOOKED && target && !is_on_floor():
+			$Node/JumpSound2.play()
 			velocity.y = JUMP_STRENGTH
 			velocity += target * 15
 			state = states.INAIR
@@ -453,6 +482,7 @@ func handle_jump():
 
 		# coyote jump
 		elif coyot_time < MAX_COYOT_TIME:
+			$Node/JumpSound1.play()
 			velocity.y = JUMP_STRENGTH
 			jump_buffer = 0.0
 			return
@@ -461,6 +491,7 @@ func handle_jump():
 		elif inair_jumps > 0 and !is_on_floor():
 			if state == states.HOOKED:
 				return
+			$Node/JumpSound2.play()
 			inair_jumps -= 1
 			velocity.y = JUMP_STRENGTH
 			jump_buffer = 0.0
@@ -489,3 +520,9 @@ func _on_area_3d_body_entered(body: Node3D) -> void:
 
 func set_mouse_sensitivity(value: float):
 	sensitivity = value
+
+
+func _on_continue_pressed() -> void:
+	$"../Control/CenterContainer".hide()
+	if !$"../Control/CenterContainer".visible:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED

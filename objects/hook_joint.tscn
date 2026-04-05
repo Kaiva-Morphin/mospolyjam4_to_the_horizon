@@ -394,7 +394,7 @@ _data = {
 }
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jgjyy"]
-albedo_color = Color(2.582784, 2.582784, 2.582784, 1)
+albedo_color = Color(18.892157, 18.892157, 18.892157, 1)
 albedo_texture = ExtResource("3_jgjyy")
 billboard_mode = 1
 distance_fade_mode = 1
@@ -427,10 +427,12 @@ material_override = SubResource("ShaderMaterial_ote7v")
 mesh = SubResource("QuadMesh_ote7v")
 
 [node name="OutOfRange" type="MeshInstance3D" parent="." unique_id=2095005669]
+visible = false
 material_override = SubResource("ShaderMaterial_rqx17")
 mesh = SubResource("QuadMesh_2dp7c")
 
 [node name="OutOfRangeRing" type="MeshInstance3D" parent="." unique_id=1099320816]
+visible = false
 material_override = SubResource("ShaderMaterial_tel1d")
 mesh = SubResource("QuadMesh_tel1d")
 
