@@ -7,3 +7,5 @@ KEY_HINT_RETURN,"C - Checkpoint\nR - Return","C - ЧЕКПОИНТ\nR - ВЕРН
 KEY_HINT_GOOD_LUCK,"Have fun","НАСЛАЖДАЙСЯ"
 KEY_HINT_HOOK,"LMB - Pull yourself","ЛКМ - ТЯНУТСЯ"
 KEY_HINT_SLIDE,"Jump onto walls to slide","ЗАПРЫГНИ ЧТОБЫ СКОЛЬЗИТЬ"
+KEY_SENSITIVITY,"Sensitivity","Чувствительность"
+KEY_MASTER,"Master","Мастер"

@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://cnqxbbogsqw86"]
+
+[ext_resource type="PackedScene" uid="uid://qnnqnbmt7hew" path="res://objects/medium_platform.tscn" id="1_ahfes"]
+
+[node name="large_platform_droneless" type="Node3D" unique_id=24672497]
+
+[node name="medium_platform" parent="." unique_id=1593823961 instance=ExtResource("1_ahfes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, -30)
+
+[node name="medium_platform2" parent="." unique_id=2132335710 instance=ExtResource("1_ahfes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -30)
+
+[node name="medium_platform3" parent="." unique_id=1405245023 instance=ExtResource("1_ahfes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -10)
+
+[node name="medium_platform4" parent="." unique_id=1044196 instance=ExtResource("1_ahfes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, -10)
+
+[node name="medium_platform5" parent="." unique_id=1868374754 instance=ExtResource("1_ahfes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -30)
+
+[node name="medium_platform6" parent="." unique_id=1176127294 instance=ExtResource("1_ahfes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, -30)
+
+[node name="medium_platform7" parent="." unique_id=279828815 instance=ExtResource("1_ahfes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, -10)
+
+[node name="medium_platform8" parent="." unique_id=511035676 instance=ExtResource("1_ahfes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -10)
+
+[node name="medium_platform9" parent="." unique_id=1752312853 instance=ExtResource("1_ahfes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 10)
+
+[node name="medium_platform10" parent="." unique_id=814794431 instance=ExtResource("1_ahfes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, 10)
+
+[node name="medium_platform11" parent="." unique_id=1617449060 instance=ExtResource("1_ahfes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, 30)
+
+[node name="medium_platform12" parent="." unique_id=1070008212 instance=ExtResource("1_ahfes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 30)
+
+[node name="medium_platform13" parent="." unique_id=1815592730 instance=ExtResource("1_ahfes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 10)
+
+[node name="medium_platform14" parent="." unique_id=1734494921 instance=ExtResource("1_ahfes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 10)
+
+[node name="medium_platform15" parent="." unique_id=510090240 instance=ExtResource("1_ahfes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 30)
+
+[node name="medium_platform16" parent="." unique_id=2104286574 instance=ExtResource("1_ahfes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 30)

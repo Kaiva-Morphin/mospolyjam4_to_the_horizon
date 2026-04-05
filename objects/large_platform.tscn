@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://bc64f7l16m7rg"]
 
 [ext_resource type="PackedScene" uid="uid://qnnqnbmt7hew" path="res://objects/medium_platform.tscn" id="1_p4y4r"]
+[ext_resource type="PackedScene" uid="uid://kr8kv81qvtyu" path="res://objects/drone.scn" id="2_4x1nw"]
+[ext_resource type="PackedScene" uid="uid://bfnkssa030ip" path="res://objects/string.scn" id="3_68qgw"]
 
 [node name="large_platform" type="Node3D" unique_id=24672497]
 
@@ -15,3 +17,18 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 10)
 
 [node name="medium_platform4" parent="." unique_id=1044196 instance=ExtResource("1_p4y4r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 10)
+
+[node name="drone" parent="." unique_id=1215487538 instance=ExtResource("2_4x1nw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.025677443, 17.454163, -0.080625415)
+
+[node name="string3" parent="." unique_id=1137576091 instance=ExtResource("3_68qgw")]
+transform = Transform3D(0.35770434, 0.81904346, 0.7040214, -0.86557543, 0.66852397, 0.0033971271, -0.35046652, -0.8151494, 0.7101706, -9.944803, 8.111311, 9.925911)
+
+[node name="string4" parent="." unique_id=719655813 instance=ExtResource("3_68qgw")]
+transform = Transform3D(-0.3504665, -0.8151494, 0.7101706, -0.86557555, 0.668524, 0.0033971253, -0.35770443, -0.8190435, -0.70402145, 10.055197, 8.111311, 9.925911)
+
+[node name="string5" parent="." unique_id=437485475 instance=ExtResource("3_68qgw")]
+transform = Transform3D(-0.35770428, -0.8190434, -0.70402145, -0.86557555, 0.668524, 0.0033971253, 0.3504665, 0.81514966, -0.7101706, 10.055197, 8.111311, -10.07409)
+
+[node name="string6" parent="." unique_id=1365254951 instance=ExtResource("3_68qgw")]
+transform = Transform3D(0.35046658, 0.8151494, -0.71017057, -0.86557555, 0.668524, 0.0033970994, 0.3577044, 0.81904346, 0.7040215, -9.944803, 8.111311, -10.074088)

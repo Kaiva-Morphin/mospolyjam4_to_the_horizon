@@ -1,0 +1,167 @@
+[gd_scene format=3 uid="uid://dl7o35x1g603k"]
+
+[ext_resource type="PackedScene" uid="uid://clrqeec4uu812" path="res://objects/platform.scn" id="1_lux4c"]
+
+[node name="big_platform" type="Node3D" unique_id=1502898193]
+
+[node name="platform" parent="." unique_id=599120366 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -25)
+
+[node name="platform2" parent="." unique_id=1550178586 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -25)
+
+[node name="platform3" parent="." unique_id=1944687770 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -25)
+
+[node name="platform4" parent="." unique_id=1525151742 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -15)
+
+[node name="platform5" parent="." unique_id=1716649798 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -15)
+
+[node name="platform6" parent="." unique_id=404854644 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -15)
+
+[node name="platform7" parent="." unique_id=1728089529 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -5)
+
+[node name="platform8" parent="." unique_id=1581413097 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -5)
+
+[node name="platform9" parent="." unique_id=1427011818 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -5)
+
+[node name="platform10" parent="." unique_id=1285564077 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 5)
+
+[node name="platform11" parent="." unique_id=1127153481 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
+
+[node name="platform12" parent="." unique_id=2043187206 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 5)
+
+[node name="platform13" parent="." unique_id=1339568306 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 15)
+
+[node name="platform14" parent="." unique_id=196866307 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 15)
+
+[node name="platform15" parent="." unique_id=17783837 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 15)
+
+[node name="platform16" parent="." unique_id=2038353268 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 25)
+
+[node name="platform17" parent="." unique_id=900265166 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 25)
+
+[node name="platform18" parent="." unique_id=785713563 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 25)
+
+[node name="platform19" parent="." unique_id=113187789 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, 5)
+
+[node name="platform20" parent="." unique_id=123019293 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, 5)
+
+[node name="platform21" parent="." unique_id=1434167500 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, 5)
+
+[node name="platform22" parent="." unique_id=2116493894 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, 15)
+
+[node name="platform23" parent="." unique_id=1043449615 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, 15)
+
+[node name="platform24" parent="." unique_id=1483573594 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, 15)
+
+[node name="platform25" parent="." unique_id=36789539 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, 25)
+
+[node name="platform26" parent="." unique_id=1447184446 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, 25)
+
+[node name="platform27" parent="." unique_id=2051803410 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, 25)
+
+[node name="platform28" parent="." unique_id=1090060922 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, -25)
+
+[node name="platform29" parent="." unique_id=923501581 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, -25)
+
+[node name="platform30" parent="." unique_id=410338405 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -25)
+
+[node name="platform31" parent="." unique_id=1090945255 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -15)
+
+[node name="platform32" parent="." unique_id=31540890 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, -15)
+
+[node name="platform33" parent="." unique_id=2071929960 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, -15)
+
+[node name="platform34" parent="." unique_id=512674344 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -5)
+
+[node name="platform35" parent="." unique_id=1392985155 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, -5)
+
+[node name="platform36" parent="." unique_id=1993433791 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, -5)
+
+[node name="platform37" parent="." unique_id=1042459700 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -25)
+
+[node name="platform38" parent="." unique_id=1613808246 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, -25)
+
+[node name="platform39" parent="." unique_id=2021101945 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, -25)
+
+[node name="platform40" parent="." unique_id=1174566106 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, -15)
+
+[node name="platform41" parent="." unique_id=836238379 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, -15)
+
+[node name="platform42" parent="." unique_id=1393416470 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -15)
+
+[node name="platform43" parent="." unique_id=838999382 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, -5)
+
+[node name="platform44" parent="." unique_id=136875051 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, -5)
+
+[node name="platform45" parent="." unique_id=1486409876 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -5)
+
+[node name="platform46" parent="." unique_id=553185561 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, 5)
+
+[node name="platform47" parent="." unique_id=1171476009 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 5)
+
+[node name="platform48" parent="." unique_id=1159016569 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, 5)
+
+[node name="platform49" parent="." unique_id=814514286 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, 15)
+
+[node name="platform50" parent="." unique_id=1984646266 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 15)
+
+[node name="platform51" parent="." unique_id=1991349901 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, 15)
+
+[node name="platform52" parent="." unique_id=2063303611 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, 25)
+
+[node name="platform53" parent="." unique_id=1609780477 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 25)
+
+[node name="platform54" parent="." unique_id=417616769 instance=ExtResource("1_lux4c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, 25)

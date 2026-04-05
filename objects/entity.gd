@@ -6,7 +6,7 @@ var SHOW_DEBUG = false
 var DEBUG_STRING = ""
 
 func init_debug():
-	$DEBUG.show()
+	pass
 
 var debug = {}
 
@@ -56,16 +56,26 @@ var jump_buffer = 0.0
 
 func return_to_checkpoint():
 	cleanup_ride()
+	#hook_target = null
 	velocity = Vector3.ZERO
 	state = states.STAND
 	self.rotation = c_rot
 	global_position = checkpoint
+	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	await get_tree().process_frame
+	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_ON
+
 
 @onready var rope = $"../Rope"
 @onready var rope_mesh = $"../Rope/Rope"
 var checkpoint
 var c_rot
 func _ready() -> void:
+	$"../Control/CenterContainer".hide()
+	#$"../Control/CenterContainer/VBoxContainer/Sensivity/VBoxContainer/HSlider".value = sensitivity
+	#$"../Control/CenterContainer/VBoxContainer/Sensivity/VBoxContainer/HSlider".value_changed.connect(_on_HSlider_value_changed)
+	$"../Node3D4/anim1/Camera2".current = true
+	camera.current = false
 	init_debug()
 	checkpoint = global_position
 	c_rot = self.rotation
@@ -73,10 +83,54 @@ func _ready() -> void:
 	rope.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	for slider_ in get_tree().get_nodes_in_group("Slider"):
 		slider_.trigger_ride.connect(on_slider_ride)
+	$CenterContainer.hide()
+	unlock()
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
+func lock_end():
+	$CenterContainer.hide()
+	locked = true
+	$"../Control/AnimationPlayer".play("end")
+	
+
+
+func run_end():
+	camera.current = false
+	$"../end_anim/end/Camera".current = true
+	$"../end_anim/end/AnimationPlayer".play("Camera|CameraAction")
+	$"../end_anim/AnimationPlayer".play("intro/PlayerAction")
+	$"../end_anim/end2/AnimationPlayer2".play("другAction")
+	$"../end_anim/Armature".show()
+	get_tree().create_timer(7.5).timeout.connect(continue_sit)
+
+func continue_sit():
+	$"../end_anim/AnimationPlayer".play("SitAction")
+
+
+var prev = Input.MOUSE_MODE_CAPTURED
 func _process(_dt: float) -> void:
+	#if Input.mouse_mode != prev:
+		#if Input.MOUSE_MODE_VISIBLE:
+			#$"..".process_mode = Node.PROCESS_MODE_DISABLED
+		#else:
+			#$"..".process_mode = Node.PROCESS_MODE_ALWAYS
+	if Input.is_action_just_pressed("ESC"):
+		if Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+			$"../Control/CenterContainer".hide()
+		else:
+			$"../Control/CenterContainer".show()
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	prev = Input.mouse_mode
+	if state == GLOBAL.ENTITY_STATE.SLIDING:
+		camera.position.y = lerp(camera.position.y, crunch_camera_target.position.y, _dt * CAMERA_INTERPOLATION_SPEED)
+	else:
+		camera.position.y = lerp(camera.position.y, stand_camera_target.position.y, _dt * CAMERA_INTERPOLATION_SPEED)
+	if locked: return
 	if global_position.y < -75.0: return_to_checkpoint()
+	if !velocity.is_finite() || !global_position.is_finite():
+		return_to_checkpoint()
 	if Input.is_action_just_pressed("C") && is_on_floor():
 		checkpoint = global_position
 		c_rot = self.rotation
@@ -104,22 +158,17 @@ func _process(_dt: float) -> void:
 	var speed = velocity.length()
 	camera.fov = lerp(camera.fov, 95.0 + 0.5 * speed, _dt * 20.0)
 	
-	if Input.is_action_just_pressed("ESC"):
-		if Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-		else:
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	if state == GLOBAL.ENTITY_STATE.SLIDING:
-		camera.position.y = lerp(camera.position.y, crunch_camera_target.position.y, _dt * CAMERA_INTERPOLATION_SPEED)
-	else:
-		camera.position.y = lerp(camera.position.y, stand_camera_target.position.y, _dt * CAMERA_INTERPOLATION_SPEED)
+
+
 
 func _notification(what):
 	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	if what == NOTIFICATION_WM_WINDOW_FOCUS_IN:
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		if !$"../Control/CenterContainer".visible:
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 #endregion
+
 
 #region RIDING
 # gc, haha
@@ -148,6 +197,7 @@ func cleanup_ride():
 		slider = null
 #endregion
 
+
 var energy := MAX_ENERGY
 var walljumps := MAX_WALLJUMPS
 var inair_jumps := MAX_AIRJUMPS
@@ -168,87 +218,6 @@ var launched = false
 
 var hook_target: Node3D
 
-#func launch():
-	#if ray.is_colliding():
-		#launched = true
-		#hook_target = ray.get_collision_point()
-#
-#func retract():
-	#launched = false
-#
-#func handle_grapple(dt):
-	#var to_hook = hook_target - global_position
-	#var distance = to_hook.length()
-	#if distance == 0:
-		#return
-	#var dir = to_hook / distance
-	#var displacement = distance - rest_length
-	#if displacement > 0:
-		#var spring_force = dir * displacement * stiffness
-		#if spring_force.length() > max_force:
-			#spring_force = spring_force.normalized() * max_force
-		#
-		#var vel_along_rope = velocity.dot(dir)
-		#var damp_force = -dir * vel_along_rope * damping
-		#var force = spring_force + damp_force
-		#velocity += force * dt
-	#velocity.y -= GRAVITY * dt
-	#move_and_slide()
-##func handle_grapple(dt):
-	##var to_hook = hook_target - global_position
-	##var distance = to_hook.length()
-	##if distance == 0:
-		##return
-	##
-	##var dir = to_hook / distance
-	##var displacement = distance - rest_length
-	##
-	### --- ПРУЖИНА ---
-	##if displacement > 0:
-		##var spring_force = dir * displacement * stiffness
-		##if spring_force.length() > max_force:
-			##spring_force = spring_force.normalized() * max_force
-		##
-		##var vel_along_rope = velocity.dot(dir)
-		##var damp_force = -dir * vel_along_rope * damping
-		##var force = spring_force + damp_force
-		##velocity += force * dt
-	##
-	### --- УПРАВЛЕНИЕ ---
-	##var input_dir = Vector3.ZERO
-	##input_dir.x = Input.get_action_strength("D") - Input.get_action_strength("A")
-	##input_dir.z = Input.get_action_strength("S") - Input.get_action_strength("W")
-	##
-	##if input_dir != Vector3.ZERO:
-		##input_dir = input_dir.normalized()
-		##
-		##var perp_input = input_dir - dir * input_dir.dot(dir)
-		##var control_strength = 5.0
-		##
-		##var accel = perp_input * control_strength * dt
-		##
-		##var speed = velocity.length()
-		##var max_speed = 20.0
-		##
-		### даём ускорение только если оно не увеличивает скорость выше лимита
-		##if speed < max_speed:
-			##velocity += accel
-		##else:
-			### разрешаем только торможение
-			##if accel.dot(velocity) < 0:
-				##velocity += accel
-	##
-	### --- ГРАВИТАЦИЯ ---
-	##velocity.y -= GRAVITY * dt
-	##
-	### --- ЖЁСТКИЙ ЛИМИТ СКОРОСТИ ---
-	##var max_speed = 20.0
-	##var current_speed = velocity.length()
-	##if current_speed > max_speed:
-		##velocity = velocity.normalized() * max_speed
-	##
-	##move_and_slide()
-
 var hook_joints = []
 func update_hook_joints():
 	hook_joints = []
@@ -256,14 +225,25 @@ func update_hook_joints():
 		hook_joints.append(node)
 
 
+var locked = true
+
+
+func unlock():
+	locked = false
+	$"../Node3D4/anim1/Camera2".current = false
+	$CenterContainer.show()
+	camera.current = true
+	$"../Node3D4".hide()
+	$CenterContainer.show()
+
 
 var wall_normal : = Vector3.ZERO
 func _physics_process(_dt: float) -> void:
+	if locked: return
 	if Input.is_action_just_pressed("SPACE"):
 		jump_buffer = JUMP_BUFFER_TIME
 	else:
 		jump_buffer = max(jump_buffer - _dt, 0.0)
-	
 	if !prev_ride_tick: cleanup_ride()
 	
 	#region JOINTS
@@ -473,15 +453,26 @@ func handle_jump():
 			jump_buffer = 0.0
 
 
+var sensitivity := 0.005
 func _unhandled_input(event):
+	if locked: return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		rotate_y(-event.relative.x * 0.005)
-		var target = -event.relative.y * 0.005
+		rotate_y(-event.relative.x * sensitivity)
+		var target = -event.relative.y * sensitivity
 		if target > 0:
 			if camera.global_rotation.x + target < 1.53:
-				camera.rotate_x(-event.relative.y * 0.005)
+				camera.rotate_x(target)
 		else:
 			if camera.global_rotation.x + target > -1.53:
-				camera.rotate_x(-event.relative.y * 0.005)
+				camera.rotate_x(target)
 	if event is InputEventMouseButton:
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		if !$"../Control/CenterContainer".visible:
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+func _on_area_3d_body_entered(body: Node3D) -> void:
+	if !body.is_in_group("Player"): return
+	lock_end()
+
+func set_mouse_sensitivity(value: float):
+	sensitivity = value

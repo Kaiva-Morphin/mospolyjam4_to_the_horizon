@@ -1,0 +1,94 @@
+[gd_scene format=3 uid="uid://p1u538qcptgk"]
+
+[ext_resource type="PackedScene" uid="uid://qnnqnbmt7hew" path="res://objects/medium_platform.tscn" id="1_fsx45"]
+[ext_resource type="PackedScene" uid="uid://kr8kv81qvtyu" path="res://objects/drone.scn" id="2_6ne2r"]
+[ext_resource type="PackedScene" uid="uid://bfnkssa030ip" path="res://objects/string.scn" id="3_b1tax"]
+
+[node name="large_platform" type="Node3D" unique_id=24672497]
+
+[node name="medium_platform" parent="." unique_id=1593823961 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, 10)
+
+[node name="medium_platform2" parent="." unique_id=2132335710 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 0, 10)
+
+[node name="medium_platform3" parent="." unique_id=1405245023 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 0, 30)
+
+[node name="medium_platform4" parent="." unique_id=1044196 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, 30)
+
+[node name="medium_platform5" parent="." unique_id=757869497 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 10)
+
+[node name="medium_platform6" parent="." unique_id=310364172 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 10)
+
+[node name="medium_platform7" parent="." unique_id=1927500134 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 30)
+
+[node name="medium_platform8" parent="." unique_id=1794424989 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 30)
+
+[node name="medium_platform9" parent="." unique_id=2106871785 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 0, 10)
+
+[node name="medium_platform10" parent="." unique_id=1992966667 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 10)
+
+[node name="medium_platform11" parent="." unique_id=1434603374 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 30)
+
+[node name="medium_platform12" parent="." unique_id=1828135259 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 0, 30)
+
+[node name="medium_platform13" parent="." unique_id=1038350535 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, -30)
+
+[node name="medium_platform14" parent="." unique_id=815317206 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 0, -30)
+
+[node name="medium_platform15" parent="." unique_id=1095622028 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 0, -10)
+
+[node name="medium_platform16" parent="." unique_id=1780721812 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, -10)
+
+[node name="medium_platform17" parent="." unique_id=1016152046 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -30)
+
+[node name="medium_platform18" parent="." unique_id=83456125 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -30)
+
+[node name="medium_platform19" parent="." unique_id=471420984 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -10)
+
+[node name="medium_platform20" parent="." unique_id=484888958 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -10)
+
+[node name="medium_platform21" parent="." unique_id=988582357 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 0, -30)
+
+[node name="medium_platform22" parent="." unique_id=1487920810 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, -30)
+
+[node name="medium_platform23" parent="." unique_id=882814421 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, -10)
+
+[node name="medium_platform24" parent="." unique_id=485785107 instance=ExtResource("1_fsx45")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 0, -10)
+
+[node name="drone" parent="." unique_id=1215487538 instance=ExtResource("2_6ne2r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.025676727, 25.454163, -0.080625534)
+
+[node name="string4" parent="." unique_id=719655813 instance=ExtResource("3_b1tax")]
+transform = Transform3D(-0.1576951, -2.4395776, 0.59313595, -0.9267892, 1.006318, 0.18708712, -0.3408728, -1.6074464, -0.7830632, 29.785898, 12.1733465, 19.468859)
+
+[node name="string5" parent="." unique_id=1137576091 instance=ExtResource("3_b1tax")]
+transform = Transform3D(-0.37605336, -2.4307497, -0.48965788, -0.9265157, 1.0081978, 0.18738125, 0.0123609025, 1.619596, -0.85154134, 29.917574, 12.1733465, -19.748222)
+
+[node name="string6" parent="." unique_id=502483133 instance=ExtResource("3_b1tax")]
+transform = Transform3D(0.15769508, 2.4395773, -0.5931361, -0.9267892, 1.006318, 0.1870871, 0.34087282, 1.6074467, 0.7830631, -29.870773, 12.1733465, -19.748222)
+
+[node name="string7" parent="." unique_id=1678047685 instance=ExtResource("3_b1tax")]
+transform = Transform3D(0.37605342, 2.43075, 0.4896578, -0.9265156, 1.0081978, 0.18738124, -0.012360907, -1.6195958, 0.85154134, -30.002453, 12.1733465, 19.468857)

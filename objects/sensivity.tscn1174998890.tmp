@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://bjtg8ro6ahyci"]
+
+[ext_resource type="Script" uid="uid://dc31pp8neh1n" path="res://objects/sensivity.gd" id="1_3xkak"]
+
+[node name="Sensivity" type="HBoxContainer" unique_id=1020221062]
+size_flags_vertical = 3
+script = ExtResource("1_3xkak")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=898018351]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="VBoxContainer" unique_id=2005393299]
+layout_mode = 2
+text = "KEY_SENSITIVITY"
+
+[node name="HSlider" type="HSlider" parent="VBoxContainer" unique_id=1229134092]
+layout_mode = 2
+min_value = 0.001
+max_value = 0.009
+step = 0.0
+value = 0.005
+
+[node name="LineEdit" type="LineEdit" parent="." unique_id=296058374]
+layout_mode = 2
+
+[connection signal="value_changed" from="VBoxContainer/HSlider" to="." method="_on_h_slider_value_changed"]
+[connection signal="text_changed" from="LineEdit" to="." method="_on_line_edit_text_changed"]
+[connection signal="text_submitted" from="LineEdit" to="." method="_on_line_edit_text_submitted"]

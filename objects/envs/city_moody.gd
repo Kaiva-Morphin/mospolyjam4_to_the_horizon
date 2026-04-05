@@ -24,6 +24,8 @@ func _ready():
 	#add_child(preload("res://maps/city.scn").instantiate())
 	if default:
 		show_env()
+	
+
 
 func _on_activator_body_entered(body: Node3D) -> void:
 	if !body.is_in_group("Player"): return
