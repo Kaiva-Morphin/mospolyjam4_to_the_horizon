@@ -71,6 +71,7 @@ func return_to_checkpoint():
 var checkpoint
 var c_rot
 func _ready() -> void:
+	#Engine.time_scale = 0.1
 	$"../Control/CenterContainer".hide()
 	#$"../Control/CenterContainer/VBoxContainer/Sensivity/VBoxContainer/HSlider".value = sensitivity
 	#$"../Control/CenterContainer/VBoxContainer/Sensivity/VBoxContainer/HSlider".value_changed.connect(_on_HSlider_value_changed)
@@ -78,6 +79,7 @@ func _ready() -> void:
 	camera.current = false
 	init_debug()
 	checkpoint = global_position
+	prev_pos = global_position
 	c_rot = self.rotation
 	update_hook_joints()
 	rope.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
@@ -109,12 +111,30 @@ func continue_sit():
 
 
 var prev = Input.MOUSE_MODE_CAPTURED
+var min_treshhold = 25.0
+var max_treshold = 35.0
+var prev_pos = Vector3.ZERO
 func _process(_dt: float) -> void:
+	dbg("FPS", Engine)
+	var vel = velocity
+	if state == states.RIDING:
+		vel = (slider.last_dir * slider.papa_speed) * 2.0
+		$HOOK.global_position = global_position # + vel * 10.0
+	if vel != Vector3.ZERO:
+		var v = clamp(clamp(vel.length() - min_treshhold, 0, max_treshold) / (max_treshold - min_treshhold), 0, 1)
+		$"../GPUParticles3D".material_override.albedo_color = Color8(255, 255, 255, 255 * v)
+		$"../GPUParticles3D".look_at(global_position + vel)
+		$"../GPUParticles3D".global_position = $StandCamera.global_position
+	prev_pos = global_position
+	
 	#if Input.mouse_mode != prev:
 		#if Input.MOUSE_MODE_VISIBLE:
 			#$"..".process_mode = Node.PROCESS_MODE_DISABLED
 		#else:
 			#$"..".process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	
+	
 	if Input.is_action_just_pressed("ESC"):
 		if Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -131,18 +151,13 @@ func _process(_dt: float) -> void:
 	if global_position.y < -75.0: return_to_checkpoint()
 	if !velocity.is_finite() || !global_position.is_finite():
 		return_to_checkpoint()
-	if Input.is_action_just_pressed("C") && is_on_floor():
-		checkpoint = global_position
-		c_rot = self.rotation
-		$"../checkpoint".position = global_position
+
 		
 	if Input.is_action_just_pressed("R"):
 		return_to_checkpoint()
 		return
-	dbg("FPS: ", Engine.get_frames_per_second())
 	update_debug()
 	
-	dbg("POS: ", global_position)
 	if hook_target:
 		var l = global_position - hook_target.global_position
 		var p = (global_position + hook_target.global_position) / 2.0;
@@ -157,7 +172,10 @@ func _process(_dt: float) -> void:
 	
 	var speed = velocity.length()
 	camera.fov = lerp(camera.fov, 95.0 + 0.5 * speed, _dt * 20.0)
-	
+	if Input.is_action_just_pressed("C") && is_on_floor():
+		checkpoint = global_position
+		c_rot = self.rotation
+		$"../checkpoint".position = global_position
 
 
 
@@ -185,7 +203,8 @@ func on_slider_ride(_slider: Node3D):
 func on_ride_end(dir):
 	state = states.STAND
 	velocity.y = JUMP_STRENGTH
-	velocity += dir
+	#velocity += dir
+	velocity += slider.last_dir.normalized() * slider.papa_speed
 	cleanup_ride()
 
 func cleanup_ride():
@@ -301,7 +320,6 @@ func _physics_process(_dt: float) -> void:
 	input_dir = Input.get_vector("A", "D", "W", "S")
 	var direction = (transform.basis * Vector3(input_dir.x, 0.0, input_dir.y)).normalized()
 	var current_rotation = camera.rotation_degrees
-	dbg("normal: ", wall_normal)
 	if wall_normal && !is_on_floor():
 		var forward = -camera.global_transform.basis.z
 		var normal = wall_normal.normalized()
@@ -329,10 +347,6 @@ func _physics_process(_dt: float) -> void:
 		inair_jumps = MAX_AIRJUMPS
 	if direction != Vector3.ZERO:
 		direction = direction.slide(floor_normal).normalized()
-	dbg("STATE: ", states.keys()[state])
-	dbg("NORMAL: ", floor_normal)
-	dbg("DIRECTION: ", direction)
-	dbg("VELOCITY: ", velocity.length())
 	match state:
 		states.STAND:
 			if not is_on_floor():
@@ -361,8 +375,6 @@ func _physics_process(_dt: float) -> void:
 				var d = 1.0 - Vector2(direction.x, direction.z).normalized().dot(Vector2(velocity.x, velocity.z).normalized()) * 0.5 - 0.45
 				d += 1.0 - clamp(velocity.length(), 0.0, 18.0) / 18.0
 				d = clamp(d, 0.0, 1.0)
-				dbg("DOT: ", d)
-				dbg("INV_SPEED: ", 1.0 - clamp(velocity.length(), 0.0, 20.0) / 20.0)
 				velocity += _dt * ACC_INAIR * direction * d
 			
 			if velocity.y < 0.0 && wall_normal:
@@ -395,7 +407,8 @@ func _physics_process(_dt: float) -> void:
 			global_position = slider.papa.global_position
 			p = lerp(p, slider.papa.global_position.y, _dt * 15.0)
 			global_position.y = p
-			velocity = Vector3.ZERO
+			if slider:
+				velocity = Vector3.ZERO
 			if Input.is_action_just_pressed("SPACE"):
 				prev_ride_tick = false
 				state = states.INAIR
