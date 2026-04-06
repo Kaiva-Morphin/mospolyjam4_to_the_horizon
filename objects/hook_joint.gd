@@ -5,7 +5,7 @@ extends Node3D
 @export var stiffness := 20.0
 @export var damping = 4.0
 @export var max_force = 150.0
-@export var focus_col : Color = Color("#9fdeff")
+@export var focus_col : Color = Color("#009CFF")
 
 func dist(v):
 	var m : ShaderMaterial = $OutOfRangeRing.material_override

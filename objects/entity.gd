@@ -55,9 +55,10 @@ var jump_buffer = 0.0
 
 var processing_return = false
 func return_to_checkpoint():
+	if locked: return
 	if processing_return: return
 	processing_return = true
-	$"../Control/AnimationPlayer".play("end")
+	$"../Control/AnimationPlayer".play("death")
 
 func finish_return():
 	processing_return = false
@@ -97,15 +98,17 @@ func _ready() -> void:
 	#unlock()
 	$"../Node3D4/anim1/AnimationPlayer".play("intro/Camera2")
 	$"../Node3D4/anim2/AnimationPlayer".play("intro/ArmatureAction")
-	
+
+
 func lock_end():
 	$CenterContainer.hide()
 	locked = true
 	$"../Control/AnimationPlayer".play("end")
-	
+	print("ABO")
 
 
 func run_end():
+	print("ABOBA")
 	camera.current = false
 	$"../end_anim/end/Camera".current = true
 	$"../end_anim/end/AnimationPlayer".play("Camera|CameraAction")
@@ -123,10 +126,12 @@ var max_treshold = 35.0
 var prev_pos = Vector3.ZERO
 var min_music_treshold = 10.0
 var max_music_treshold = 20.0
-var min_db = -50.0
+var min_db = -40.0
 var max_db = -20.0
 
 func _process(_dt: float) -> void:
+	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		$"../Control/CenterContainer".hide()
 	if Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
 		$"../Control/CenterContainer".show()
 	if Input.is_action_just_pressed("F"):
@@ -198,11 +203,14 @@ func _process(_dt: float) -> void:
 
 
 func _notification(what):
-	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	if what == NOTIFICATION_WM_WINDOW_FOCUS_IN:
-		if !$"../Control/CenterContainer".visible:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	#if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+		#Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		#$"../Control/CenterContainer".show()
+	#if what == NOTIFICATION_WM_WINDOW_FOCUS_IN:
+		#if !$"../Control/CenterContainer".visible:
+			#Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	return
+
 #endregion
 
 
@@ -524,5 +532,4 @@ func set_mouse_sensitivity(value: float):
 
 func _on_continue_pressed() -> void:
 	$"../Control/CenterContainer".hide()
-	if !$"../Control/CenterContainer".visible:
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED

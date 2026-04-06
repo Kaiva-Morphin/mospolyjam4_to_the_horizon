@@ -13,7 +13,14 @@ config_version=5
 config/name="mospolyjam4"
 run/main_scene="uid://d2m7ujdxbfym1"
 config/features=PackedStringArray("4.6", "Forward Plus")
+boot_splash/bg_color=Color(0, 0, 0, 1)
+boot_splash/stretch_mode=0
+boot_splash/image="uid://cvq5ovb33qi83"
 config/icon="res://icon.svg"
+
+[audio]
+
+buses/default_bus_layout="uid://cyugl7nlgtiu5"
 
 [autoload]
 
@@ -142,6 +149,10 @@ LMB={
 
 [internationalization]
 
+locale/translation_remaps={
+"res://assets/текст-1.png": PackedStringArray("res://assets/text1.png:en"),
+"res://assets/текст-2.png": PackedStringArray("res://assets/text2.png:en")
+}
 locale/translations=PackedStringArray("res://locale/locale.en_US.translation", "res://locale/locale.ru_RU.translation")
 
 [physics]
